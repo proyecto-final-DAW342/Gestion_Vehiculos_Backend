@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Gestión de Vehículos API
   description: API para la administración de flotas de vehículos, conductores, trayectos y mantenimientos.
-  version: 1.0.0
+  version: 1.1.0
 servers:
   - url: /api
     description: Servidor Local
@@ -76,7 +76,7 @@ components:
           type: string
           format: date-time
         anyosAntiguedad:
-          type: string
+          type: integer
         tipo:
           type: string
         kilometrosTotales:
@@ -89,6 +89,17 @@ components:
           type: boolean
         gastoPorKm:
           type: number
+        imagenes:
+          type: array
+          description: "Format depends on the method (POST uses object with id, PATCH uses URL string)"
+          items:
+            anyOf:
+              - type: object
+                properties:
+                  id:
+                    type: integer
+              - type: string
+                format: uri
         conductorDni:
           type: string
           nullable: true
@@ -220,6 +231,26 @@ components:
         - completado
         - gasto
 
+    Image:
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+        nombre:
+          type: string
+        vehiculoMatricula:
+          type: string
+          nullable: true
+        conductorDni:
+          type: string
+          nullable: true
+      required:
+        - id
+        - url
+        - nombre
+
 paths:
   /auth/register:
     post:
@@ -243,6 +274,7 @@ paths:
                   type: string
                 telefono:
                   type: string
+              required: [email, password, fullName, dni, telefono]
       responses:
         '201':
           description: Usuario registrado exitosamente
@@ -267,6 +299,7 @@ paths:
                   type: string
                 password:
                   type: string
+              required: [dni, password]
       responses:
         '201':
           description: Login exitoso
@@ -295,6 +328,17 @@ paths:
         - Users
       security:
         - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
       responses:
         '200':
           description: Lista de usuarios
@@ -332,10 +376,12 @@ paths:
           in: query
           schema:
             type: integer
+            default: 10
         - name: offset
           in: query
           schema:
             type: integer
+            default: 0
       responses:
         '200':
           description: Lista de vehículos
@@ -357,9 +403,28 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Vehiculo'
+            example:
+              matricula: "1234ABC"
+              marca: "Toyota"
+              modelo: "Corolla"
+              fechaCompra: "2023-01-01T00:00:00Z"
+              anyosAntiguedad: 1
+              tipo: "Turismo"
+              kilometrosTotales: 1000
+              alimentacion: "Gasolina"
+              precio: 25000
+              nuevo: true
+              gastoPorKm: 0.15
+              imagenes:
+                - id: 1
+                - id: 2
       responses:
         '201':
           description: Vehículo creado exitosamente
+        '401':
+          description: No autorizado
+        '409':
+          description: Matrícula o marca ya existen
 
   /vehiculos/{matricula}:
     get:
@@ -375,6 +440,8 @@ paths:
       responses:
         '200':
           description: Vehículo encontrado
+        '404':
+          description: Vehículo no encontrado
     patch:
       summary: Actualizar vehículo
       tags:
@@ -393,9 +460,15 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Vehiculo'
+            example:
+              kilometrosTotales: 1500
+              imagenes:
+                - "https://res.cloudinary.com/demo/image/upload/sample.jpg"
       responses:
         '200':
           description: Vehículo actualizado
+        '404':
+          description: Vehículo no encontrado
     delete:
       summary: Eliminar vehículo
       tags:
@@ -411,15 +484,34 @@ paths:
       responses:
         '200':
           description: Vehículo eliminado
+        '404':
+          description: Vehículo no encontrado
 
   /conductores:
     get:
       summary: Listar conductores
       tags:
         - Conductores
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
       responses:
         '200':
           description: Lista de conductores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Conductor'
     post:
       summary: Crear conductor
       tags:
@@ -435,6 +527,10 @@ paths:
       responses:
         '201':
           description: Conductor creado
+        '401':
+          description: No autorizado
+        '409':
+          description: DNI ya existe
 
   /conductores/{dni}:
     get:
@@ -450,6 +546,8 @@ paths:
       responses:
         '200':
           description: Conductor encontrado
+        '404':
+          description: Conductor no encontrado
     patch:
       summary: Actualizar conductor
       tags:
@@ -471,6 +569,8 @@ paths:
       responses:
         '200':
           description: Conductor actualizado
+        '404':
+          description: Conductor no encontrado
     delete:
       summary: Eliminar conductor
       tags:
@@ -486,15 +586,34 @@ paths:
       responses:
         '200':
           description: Conductor eliminado
+        '404':
+          description: Conductor no encontrado
 
   /averias:
     get:
       summary: Listar averías
       tags:
         - Averias
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
       responses:
         '200':
           description: Lista de averías
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Averia'
     post:
       summary: Crear avería
       tags:
@@ -510,6 +629,10 @@ paths:
       responses:
         '201':
           description: Avería creada
+        '401':
+          description: No autorizado
+        '409':
+          description: ID ya existe
 
   /averias/{id}:
     get:
@@ -525,6 +648,8 @@ paths:
       responses:
         '200':
           description: Avería encontrada
+        '404':
+          description: Avería no encontrada
     patch:
       summary: Actualizar avería
       tags:
@@ -546,6 +671,8 @@ paths:
       responses:
         '200':
           description: Avería actualizada
+        '404':
+          description: Avería no encontrada
     delete:
       summary: Eliminar avería
       tags:
@@ -561,21 +688,46 @@ paths:
       responses:
         '200':
           description: Avería eliminada
+        '404':
+          description: Avería no encontrada
 
   /trayectos:
     get:
       summary: Listar trayectos
       tags:
         - Trayectos
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
       responses:
         '200':
           description: Lista de trayectos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trayecto'
     post:
       summary: Crear trayecto
       tags:
         - Trayectos
       security:
         - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trayecto'
       responses:
         '201':
           description: Trayecto creado
@@ -594,12 +746,61 @@ paths:
       responses:
         '200':
           description: Trayecto encontrado
+        '404':
+          description: Trayecto no encontrado
+    patch:
+      summary: Actualizar trayecto
+      tags:
+        - Trayectos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trayecto'
+      responses:
+        '200':
+          description: Trayecto actualizado
+    delete:
+      summary: Eliminar trayecto
+      tags:
+        - Trayectos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Trayecto eliminado
 
   /viajes:
     get:
       summary: Listar viajes
       tags:
         - Viajes
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
       responses:
         '200':
           description: Lista de viajes
@@ -627,12 +828,38 @@ paths:
       responses:
         '200':
           description: Viaje encontrado
+    delete:
+      summary: Eliminar viaje
+      tags:
+        - Viajes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Viaje eliminado
 
   /revisiones:
     get:
       summary: Listar revisiones
       tags:
         - Revisiones
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
       responses:
         '200':
           description: Lista de revisiones
@@ -642,6 +869,12 @@ paths:
         - Revisiones
       security:
         - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Revision'
       responses:
         '201':
           description: Revisión creada
@@ -651,6 +884,17 @@ paths:
       summary: Listar info de trayectos
       tags:
         - Info Trayectos
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
       responses:
         '200':
           description: Lista de info de trayectos
@@ -660,20 +904,88 @@ paths:
         - Info Trayectos
       security:
         - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InfoTrayecto'
       responses:
         '201':
           description: Info de trayecto creada
 
-  /files:
+  /info-trayectos/{id}:
     get:
-      summary: Listar recursos de Cloudinary
+      summary: Obtener info de trayecto
       tags:
-        - Files
+        - Info Trayectos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
-          description: Lista de recursos
+          description: Info encontrada
+    patch:
+      summary: Actualizar info de trayecto
+      tags:
+        - Info Trayectos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InfoTrayecto'
+      responses:
+        '200':
+          description: Info actualizada
+    delete:
+      summary: Eliminar info de trayecto
+      tags:
+        - Info Trayectos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Info eliminada
+
+  /files:
+    get:
+      summary: Listar recursos de Cloudinary (Imágenes guardadas en BD)
+      tags:
+        - Files
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Lista de imágenes
     post:
-      summary: Subir imagen a Cloudinary
+      summary: Guardar referencia de imagen en BD
       tags:
         - Files
       security:
@@ -681,14 +993,49 @@ paths:
       requestBody:
         required: true
         content:
-          image/jpeg:
+          application/json:
             schema:
-              type: string
-              format: binary
-          image/png:
-            schema:
-              type: string
-              format: binary
+              type: object
+              properties:
+                url:
+                  type: string
+                nombre:
+                  type: string
+              required: [url, nombre]
       responses:
         '201':
-          description: Imagen subida exitosamente
+          description: Referencia guardada
+
+  /files/upload:
+    get:
+      summary: Listar recursos directamente de la carpeta en Cloudinary
+      tags:
+        - Files
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Lista de recursos de Cloudinary
+    post:
+      summary: Subir imagen binaria a Cloudinary
+      tags:
+        - Files
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Imagen subida y referencia guardada

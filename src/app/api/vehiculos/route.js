@@ -94,13 +94,14 @@ export async function POST(request) {
       precio: precio || 0,
       nuevo,
       gastoPorKm,
+      imagenes,
     };
 
     if (conductorDni) data.conductorDni = conductorDni;
     if (averiaId) data.averiaId = averiaId;
     if (imagenes && imagenes.length > 0) {
       data.imagenes = {
-        create: imagenes.map((url) => ({ url })),
+        connect: imagenes.map(({ id }) => ({ id })),
       };
     }
 

@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import cloudinary from "@/lib/cloudinary";
 import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
-
-const FOLDER = "vehiculos";
 
 export async function GET(request) {
   const offset = +request.nextUrl.searchParams.get("offset") || 0;
