@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  dni       String   @id
+  dni      String   @id
   email    String   @unique
   password String
   fullName String
@@ -29,6 +29,7 @@ model Conductor {
 
   vehiculo                Vehiculo[]
   infoEspecificaTrayectos InfoEspecificaTrayecto[]
+  images                  Images[]
 }
 
 model InfoEspecificaTrayecto {
@@ -61,24 +62,24 @@ model Viaje {
 }
 
 model Vehiculo {
-  matricula         String           @id @default(uuid())
-  marca             String           @unique
+  matricula         String   @id @default(uuid())
+  marca             String   @unique
   modelo            String
   fechaCompra       DateTime
   anyosAntiguedad   String
   tipo              String
   kilometrosTotales Float
   alimentacion      String
-  precio            Float            @default(0)
+  precio            Float    @default(0)
   nuevo             Boolean
   gastoPorKm        Float
-  imagen            ImagenVehiculo[]
 
   conductorDni String?
   conductor    Conductor? @relation(fields: [conductorDni], references: [dni])
 
-  averia   Averia? @relation(fields: [averiaId], references: [id])
+  averia   Averia?  @relation(fields: [averiaId], references: [id])
   averiaId Int?
+  imagenes Images[]
 
   @@map("vehiculos")
 }
@@ -105,12 +106,23 @@ model Averia {
   vehiculosAveriados Vehiculo[]
 }
 
-model ImagenVehiculo {
+/**
+ * model ImagenVehiculo {
+ * id  Int    @id @default(autoincrement())
+ * url String @unique
+ * vehiculoId String?
+ * vehiculo   Vehiculo? @relation(fields: [vehiculoId], references: [matricula], onDelete: Cascade)
+ * @@map("imagenes_vehiculo")
+ * }
+ */
+
+model Images {
   id  Int    @id @default(autoincrement())
   url String @unique
 
-  vehiculoId String?
-  vehiculo   Vehiculo? @relation(fields: [vehiculoId], references: [matricula], onDelete: Cascade)
+  vehiculoMatricula String?
+  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: Cascade)
 
-  @@map("imagenes_vehiculo")
+  conductorDni String?
+  conductor    Conductor? @relation(fields: [conductorDni], references: [dni], onDelete: Cascade)
 }
