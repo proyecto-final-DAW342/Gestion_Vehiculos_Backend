@@ -71,7 +71,7 @@ model Vehiculo {
   kilometrosTotales Float
   alimentacion      String
   precio            Float    @default(0)
-  nuevo             Boolean
+  nuevo             Boolean //Esto tal vez no haga falta
   gastoPorKm        Float
 
   conductorDni String?
@@ -90,7 +90,6 @@ model Revision {
   id       Int      @id
   fecha    DateTime
   lugar    String
-  activo   Boolean
   aprobada Boolean
 }
 
