@@ -94,7 +94,6 @@ export async function POST(request) {
       precio: precio || 0,
       nuevo,
       gastoPorKm,
-      imagenes,
     };
 
     if (conductorDni) data.conductorDni = conductorDni;

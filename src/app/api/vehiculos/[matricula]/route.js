@@ -46,8 +46,8 @@ export async function PATCH(request, { params }) {
   const token = authHeader.split(" ")[1] || authHeader;
 
   try {
-    const { id } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { id } });
+    const { dni } = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await prisma.user.findUnique({ where: { dni } });
 
     if (!user) {
       return NextResponse.json(
@@ -97,9 +97,9 @@ export async function PATCH(request, { params }) {
     if (averiaId !== undefined) data.averiaId = averiaId;
     if (imagenes !== undefined) {
       data.imagenes = {
-        connectOrCreate: imagenes.map((url) => ({
-          where: { url },
-          create: { url },
+        connectOrCreate: imagenes.map(({ id, url, nombre }) => ({
+          where: { id },
+          create: { id, url, nombre },
         })),
       };
     }
