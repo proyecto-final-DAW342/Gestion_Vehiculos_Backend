@@ -40,8 +40,8 @@ export async function POST(request) {
   const token = authHeader.split(" ")[1] || authHeader;
 
   try {
-    const { id } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { id } });
+    const { dni } = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await prisma.user.findUnique({ where: { dni } });
 
     if (!user) {
       return NextResponse.json(
