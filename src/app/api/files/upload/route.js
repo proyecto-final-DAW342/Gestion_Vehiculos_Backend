@@ -6,27 +6,13 @@ import prisma from "@/lib/prisma";
 const FOLDER = "vehiculos";
 
 export async function GET(request) {
-  const offset = +request.nextUrl.searchParams.get("offset") || 0;
   const limit = +request.nextUrl.searchParams.get("limit") || 10;
 
-  try {
-    const imagenes = await prisma.images.findMany({
-      take: limit,
-      skip: offset,
-      include: {
-        conductor: true,
-        vehiculo: true,
-      },
-    });
+  const result = await cloudinary.api.resources_by_asset_folder(FOLDER, {
+    max_results: limit,
+  });
 
-    return NextResponse.json(imagenes, { status: 200 });
-  } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
-  }
+  return NextResponse.json(result.resources, { status: 200 });
 }
 
 export async function POST(request) {
@@ -50,12 +36,42 @@ export async function POST(request) {
       );
     }
 
-    const { url, nombre } = await request.json();
+    const arrayBuffer = await request.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (buffer.length === 0) {
+      return NextResponse.json({ error: "Image is required" }, { status: 400 });
+    }
+
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            asset_folder: FOLDER,
+            format: "webp",
+            aspect_ratio: "1",
+            crop: "fill",
+            width: 852,
+            gravity: "center",
+            invalidate: true,
+            use_filename: true,
+            unique_filename: true,
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          },
+        )
+        .end(buffer);
+    });
 
     const query = await prisma.images.create({
       data: {
-        url,
-        nombre,
+        url: result.url,
+        nombre: result.display_name,
       },
     });
 
