@@ -1,22 +1,11 @@
-openapi: 3.1.1
+openapi: 3.0.0
 info:
-  title: "Gestion Vehiculos API"
-  description: |
-    # API de Gestión de Vehículos y Trayectos
-    Esta API proporciona funcionalidades para la gestión de flota, conductores, trayectos y mantenimiento.
-
-    ## **Autenticación**
-    - Registro, Login y Verificación de estado (JWT).
-
-    ## **Gestión de Flota**
-    - **Conductores**: CRUD completo de personal.
-    - **Vehículos**: Gestión de unidades, incluyendo imágenes y estado.
-    - **Revisiones y Averías**: Seguimiento del mantenimiento y reparaciones.
-    - **Trayectos y Viajes**: Registro de rutas, distancias y asignaciones.
-
-    ## **Archivos**
-    - Subida y gestión de imágenes de vehículos en Cloudinary.
-  version: "1.2.0"
+  title: Gestión de Vehículos API
+  description: API para la administración de flotas de vehículos, conductores, trayectos y mantenimientos.
+  version: 1.0.0
+servers:
+  - url: /api
+    description: Servidor Local
 
 components:
   securitySchemes:
@@ -29,201 +18,677 @@ components:
     User:
       type: object
       properties:
-        id: { type: string }
-        email: { type: string }
-        fullName: { type: string }
-        isActive: { type: boolean }
-        roles: { type: array, items: { type: string } }
+        dni:
+          type: string
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        telefono:
+          type: string
+        isActive:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+      required:
+        - dni
+        - email
+        - fullName
+        - telefono
 
     Conductor:
       type: object
-      required: [dni, nombre, apellidos, telefono, direccion, fechaNacimiento]
       properties:
-        dni: { type: string }
-        nombre: { type: string }
-        apellidos: { type: string }
-        telefono: { type: string }
-        direccion: { type: string }
-        fechaNacimiento: { type: string, format: date-time }
+        dni:
+          type: string
+        nombre:
+          type: string
+        apellidos:
+          type: string
+        telefono:
+          type: string
+        direccion:
+          type: string
+        fechaNacimiento:
+          type: string
+          format: date-time
+      required:
+        - dni
+        - nombre
+        - apellidos
+        - telefono
+        - direccion
+        - fechaNacimiento
 
     Vehiculo:
       type: object
-      required: [matricula, marca, modelo, tipo, kilometrosTotales, nuevo, gastoPorKm]
       properties:
-        matricula: { type: string }
-        marca: { type: string }
-        modelo: { type: string }
-        fechaCompra: { type: string, format: date-time }
-        anyosAntiguedad: { type: string }
-        tipo: { type: string }
-        kilometrosTotales: { type: number }
-        alimentacion: { type: string }
-        precio: { type: number }
-        nuevo: { type: boolean }
-        gastoPorKm: { type: number }
-        conductorDni: { type: string, nullable: true }
-        averiaId: { type: integer, nullable: true }
-
-    Trayecto:
-      type: object
-      required: [id, horaSalida, horaLlegada, origen, destino, distanciaEnKm]
-      properties:
-        id: { type: integer }
-        horaSalida: { type: string, format: date-time }
-        horaLlegada: { type: string, format: date-time }
-        origen: { type: string }
-        destino: { type: string }
-        distanciaEnKm: { type: number }
-        viajeId: { type: integer, nullable: true }
-
-    Viaje:
-      type: object
-      required: [id]
-      properties:
-        id: { type: integer }
-
-    Revision:
-      type: object
-      required: [id, fecha, lugar, activo, aprobada]
-      properties:
-        id: { type: integer }
-        fecha: { type: string, format: date-time }
-        lugar: { type: string }
-        activo: { type: boolean }
-        aprobada: { type: boolean }
+        matricula:
+          type: string
+        marca:
+          type: string
+        modelo:
+          type: string
+        fechaCompra:
+          type: string
+          format: date-time
+        anyosAntiguedad:
+          type: string
+        tipo:
+          type: string
+        kilometrosTotales:
+          type: number
+        alimentacion:
+          type: string
+        precio:
+          type: number
+        nuevo:
+          type: boolean
+        gastoPorKm:
+          type: number
+        conductorDni:
+          type: string
+          nullable: true
+        averiaId:
+          type: integer
+          nullable: true
+      required:
+        - matricula
+        - marca
+        - modelo
+        - fechaCompra
+        - anyosAntiguedad
+        - tipo
+        - kilometrosTotales
+        - alimentacion
+        - nuevo
+        - gastoPorKm
 
     Averia:
       type: object
-      required: [id, descripcion, fechaAveria, fechaComienzoReparacion, fechaFinReparacion, lugarReparacion, costeReparacion]
       properties:
-        id: { type: integer }
-        descripcion: { type: string }
-        fechaAveria: { type: string, format: date-time }
-        fechaComienzoReparacion: { type: string, format: date-time }
-        fechaFinReparacion: { type: string, format: date-time }
-        lugarReparacion: { type: string }
-        costeReparacion: { type: number }
+        id:
+          type: integer
+        descripcion:
+          type: string
+        fechaAveria:
+          type: string
+          format: date-time
+        fechaComienzoReparacion:
+          type: string
+          format: date-time
+        fechaFinReparacion:
+          type: string
+          format: date-time
+        lugarReparacion:
+          type: string
+        costeReparacion:
+          type: number
+      required:
+        - id
+        - descripcion
+        - fechaAveria
+        - fechaComienzoReparacion
+        - fechaFinReparacion
+        - lugarReparacion
+        - costeReparacion
+
+    Trayecto:
+      type: object
+      properties:
+        id:
+          type: integer
+        horaSalida:
+          type: string
+          format: date-time
+        horaLlegada:
+          type: string
+          format: date-time
+        origen:
+          type: string
+        destino:
+          type: string
+        distanciaEnKm:
+          type: number
+        viajeId:
+          type: integer
+          nullable: true
+      required:
+        - id
+        - horaSalida
+        - horaLlegada
+        - origen
+        - destino
+        - distanciaEnKm
+
+    Viaje:
+      type: object
+      properties:
+        id:
+          type: integer
+        trayectos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trayecto'
+      required:
+        - id
+
+    Revision:
+      type: object
+      properties:
+        id:
+          type: integer
+        fecha:
+          type: string
+          format: date-time
+        lugar:
+          type: string
+        activo:
+          type: boolean
+        aprobada:
+          type: boolean
+      required:
+        - id
+        - fecha
+        - lugar
+        - activo
+        - aprobada
 
     InfoTrayecto:
       type: object
-      required: [id, activo, completado, gasto]
       properties:
-        id: { type: integer }
-        activo: { type: boolean }
-        completado: { type: boolean }
-        gasto: { type: number }
-        conductorDni: { type: string, nullable: true }
-        trayectoId: { type: integer, nullable: true }
+        id:
+          type: integer
+        activo:
+          type: boolean
+        completado:
+          type: boolean
+        gasto:
+          type: number
+        conductorDni:
+          type: string
+          nullable: true
+        trayectoId:
+          type: integer
+          nullable: true
+      required:
+        - id
+        - activo
+        - completado
+        - gasto
 
 paths:
-  # AUTH
-  /api/auth/register:
+  /auth/register:
     post:
-      summary: Registro de usuario
-      tags: [Auth]
-      responses: { "201": { description: OK } }
-  /api/auth/login:
+      summary: Registrar un nuevo usuario
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                fullName:
+                  type: string
+                dni:
+                  type: string
+                telefono:
+                  type: string
+      responses:
+        '201':
+          description: Usuario registrado exitosamente
+        '400':
+          description: Faltan campos requeridos
+        '409':
+          description: El usuario ya existe
+
+  /auth/login:
     post:
-      summary: Login de usuario
-      tags: [Auth]
-      responses: { "201": { description: OK } }
+      summary: Iniciar sesión
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dni:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Login exitoso
+        '400':
+          description: Faltan campos requeridos
+        '401':
+          description: Credenciales inválidas
 
-  # USUARIOS
-  /api/users/{dni}:
+  /auth/check-status:
     get:
-      summary: Obtener usuario por DNI
-      tags: [Usuarios]
-      parameters: [{ name: dni, in: path, required: true, schema: { type: string } }]
-      responses: { "200": { description: OK } }
+      summary: Verificar el estado de la sesión
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token válido
+        '401':
+          description: No autorizado
 
-  # CONDUCTORES
-  /api/conductores:
+  /users:
     get:
-      summary: Listar conductores
-      tags: [Conductores]
-      responses: { "200": { description: OK } }
-    post:
-      summary: Crear conductor
-      tags: [Conductores]
-      security: [{ bearerAuth: [] }]
-      responses: { "201": { description: OK } }
-  /api/conductores/{dni}:
-    get:
-      summary: Obtener conductor
-      tags: [Conductores]
-      parameters: [{ name: dni, in: path, required: true, schema: { type: string } }]
-      responses: { "200": { description: OK } }
-    patch:
-      summary: Actualizar conductor
-      tags: [Conductores]
-      security: [{ bearerAuth: [] }]
-      responses: { "200": { description: OK } }
-    delete:
-      summary: Eliminar conductor
-      tags: [Conductores]
-      security: [{ bearerAuth: [] }]
-      responses: { "200": { description: OK } }
+      summary: Listar todos los usuarios
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
 
-  # VEHICULOS
-  /api/vehiculos:
+  /users/{dni}:
+    get:
+      summary: Obtener un usuario por DNI
+      tags:
+        - Users
+      parameters:
+        - name: dni
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Usuario encontrado
+        '404':
+          description: Usuario no encontrado
+
+  /vehiculos:
     get:
       summary: Listar vehículos
-      tags: [Vehículos]
-      responses: { "200": { description: OK } }
+      tags:
+        - Vehiculos
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de vehículos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vehiculo'
     post:
-      summary: Crear vehículo
-      tags: [Vehículos]
-      security: [{ bearerAuth: [] }]
-      responses: { "201": { description: OK } }
-  /api/vehiculos/{matricula}:
+      summary: Crear un vehículo
+      tags:
+        - Vehiculos
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Vehiculo'
+      responses:
+        '201':
+          description: Vehículo creado exitosamente
+
+  /vehiculos/{matricula}:
     get:
-      summary: Obtener vehículo
-      tags: [Vehículos]
-      parameters: [{ name: matricula, in: path, required: true, schema: { type: string } }]
-      responses: { "200": { description: OK } }
+      summary: Obtener vehículo por matrícula
+      tags:
+        - Vehiculos
+      parameters:
+        - name: matricula
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vehículo encontrado
     patch:
       summary: Actualizar vehículo
-      tags: [Vehículos]
-      security: [{ bearerAuth: [] }]
-      responses: { "200": { description: OK } }
+      tags:
+        - Vehiculos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: matricula
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Vehiculo'
+      responses:
+        '200':
+          description: Vehículo actualizado
     delete:
       summary: Eliminar vehículo
-      tags: [Vehículos]
-      security: [{ bearerAuth: [] }]
-      responses: { "200": { description: OK } }
+      tags:
+        - Vehiculos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: matricula
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vehículo eliminado
 
-  # TRAYECTOS
-  /api/trayectos:
+  /conductores:
+    get:
+      summary: Listar conductores
+      tags:
+        - Conductores
+      responses:
+        '200':
+          description: Lista de conductores
+    post:
+      summary: Crear conductor
+      tags:
+        - Conductores
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Conductor'
+      responses:
+        '201':
+          description: Conductor creado
+
+  /conductores/{dni}:
+    get:
+      summary: Obtener conductor
+      tags:
+        - Conductores
+      parameters:
+        - name: dni
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Conductor encontrado
+    patch:
+      summary: Actualizar conductor
+      tags:
+        - Conductores
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dni
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Conductor'
+      responses:
+        '200':
+          description: Conductor actualizado
+    delete:
+      summary: Eliminar conductor
+      tags:
+        - Conductores
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dni
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Conductor eliminado
+
+  /averias:
+    get:
+      summary: Listar averías
+      tags:
+        - Averias
+      responses:
+        '200':
+          description: Lista de averías
+    post:
+      summary: Crear avería
+      tags:
+        - Averias
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Averia'
+      responses:
+        '201':
+          description: Avería creada
+
+  /averias/{id}:
+    get:
+      summary: Obtener avería
+      tags:
+        - Averias
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Avería encontrada
+    patch:
+      summary: Actualizar avería
+      tags:
+        - Averias
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Averia'
+      responses:
+        '200':
+          description: Avería actualizada
+    delete:
+      summary: Eliminar avería
+      tags:
+        - Averias
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Avería eliminada
+
+  /trayectos:
     get:
       summary: Listar trayectos
-      tags: [Trayectos]
-      responses: { "200": { description: OK } }
+      tags:
+        - Trayectos
+      responses:
+        '200':
+          description: Lista de trayectos
     post:
       summary: Crear trayecto
-      tags: [Trayectos]
-      security: [{ bearerAuth: [] }]
-      responses: { "201": { description: OK } }
-  /api/trayectos/{id}:
+      tags:
+        - Trayectos
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Trayecto creado
+
+  /trayectos/{id}:
     get:
       summary: Obtener trayecto
-      tags: [Trayectos]
-      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
-      responses: { "200": { description: OK } }
-    patch:
-      summary: Actualizar trayecto
-      tags: [Trayectos]
-      security: [{ bearerAuth: [] }]
-      responses: { "200": { description: OK } }
-    delete:
-      summary: Eliminar trayecto
-      tags: [Trayectos]
-      security: [{ bearerAuth: [] }]
-      responses: { "200": { description: OK } }
+      tags:
+        - Trayectos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Trayecto encontrado
 
-  # FILES
-  /api/files/vehiculo:
+  /viajes:
+    get:
+      summary: Listar viajes
+      tags:
+        - Viajes
+      responses:
+        '200':
+          description: Lista de viajes
     post:
-      summary: Subir imagen de vehículo
-      tags: [Imágenes]
-      security: [{ bearerAuth: [] }]
-      responses: { "201": { description: OK } }
+      summary: Crear viaje
+      tags:
+        - Viajes
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Viaje creado
+
+  /viajes/{id}:
+    get:
+      summary: Obtener viaje
+      tags:
+        - Viajes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Viaje encontrado
+
+  /revisiones:
+    get:
+      summary: Listar revisiones
+      tags:
+        - Revisiones
+      responses:
+        '200':
+          description: Lista de revisiones
+    post:
+      summary: Crear revisión
+      tags:
+        - Revisiones
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Revisión creada
+
+  /info-trayectos:
+    get:
+      summary: Listar info de trayectos
+      tags:
+        - Info Trayectos
+      responses:
+        '200':
+          description: Lista de info de trayectos
+    post:
+      summary: Crear info de trayecto
+      tags:
+        - Info Trayectos
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Info de trayecto creada
+
+  /files:
+    get:
+      summary: Listar recursos de Cloudinary
+      tags:
+        - Files
+      responses:
+        '200':
+          description: Lista de recursos
+    post:
+      summary: Subir imagen a Cloudinary
+      tags:
+        - Files
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          image/png:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '201':
+          description: Imagen subida exitosamente

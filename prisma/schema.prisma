@@ -106,19 +106,10 @@ model Averia {
   vehiculosAveriados Vehiculo[]
 }
 
-/**
- * model ImagenVehiculo {
- * id  Int    @id @default(autoincrement())
- * url String @unique
- * vehiculoId String?
- * vehiculo   Vehiculo? @relation(fields: [vehiculoId], references: [matricula], onDelete: Cascade)
- * @@map("imagenes_vehiculo")
- * }
- */
-
 model Images {
-  id  Int    @id @default(autoincrement())
-  url String @unique
+  id     Int    @id @default(autoincrement())
+  url    String @unique
+  nombre String @unique
 
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: Cascade)
