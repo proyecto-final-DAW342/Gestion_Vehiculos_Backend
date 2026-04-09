@@ -80,7 +80,8 @@ model Vehiculo {
   averia   Averia? @relation(fields: [averiaId], references: [id])
   averiaId Int?
 
-  imagenes Images[]
+  imagenes     Images[]
+  siguienteITV Revision[]
 
   @@map("vehiculos")
 }
@@ -91,6 +92,9 @@ model Revision {
   fecha    DateTime
   lugar    String
   aprobada Boolean
+
+  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula])
+  vehiculoMatricula String?
 }
 
 //Para ir a la reparación de la avería hace falta un trayecto
