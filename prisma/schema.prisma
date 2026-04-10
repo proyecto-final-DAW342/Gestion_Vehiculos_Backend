@@ -80,15 +80,19 @@ model Vehiculo {
   averia   Averia? @relation(fields: [averiaId], references: [id])
   averiaId Int?
 
+  imagenPrincipal   Images @relation(fields: [imagesId], references: [id])
+  imagenPrincipalId Int
+
   imagenes     Images[]
   siguienteITV Revision[]
+  imagesId     Int
 
   @@map("vehiculos")
 }
 
 //Para ir a la revision hace falta un trayecto
 model Revision {
-  id       Int      @id
+  id       String   @id @default(uuid())
   fecha    DateTime
   lugar    String
   aprobada Boolean
