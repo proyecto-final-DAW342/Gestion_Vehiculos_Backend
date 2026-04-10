@@ -41,9 +41,9 @@ export async function POST(request) {
             use_filename: true,
             unique_filename: true,
           },
-          (error, result) => {
-            if (error) {
-              reject(error);
+          (err, result) => {
+            if (err) {
+              reject(err);
             } else {
               resolve(result);
             }
