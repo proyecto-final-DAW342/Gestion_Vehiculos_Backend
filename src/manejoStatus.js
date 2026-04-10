@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 //https://www.rfc-editor.org/rfc/rfc9110.html#name-status-codes
 //https://www.prisma.io/docs/orm/reference/error-reference#error-codes
+const AUTH_ERRORS = {
+  TokenExpiredError: { code: 401, message: "Sesión expirada" },
+  JsonWebTokenError: { code: 401, message: "Sesión expirada" },
+};
+
 const GENERAL_ERROR_MESSAGES = {
   400: "Bad request. Revisa los datos enviados.",
   401: "Unauthorized. Token expirado o inválido.",
@@ -17,16 +22,21 @@ const PRISMA_ERROR_MESSAGES = {
 };
 
 export async function errorHandling(error, customMessage = null) {
+  AUTH_ERRORS[error?.name] && (error = AUTH_ERRORS[error?.name]);
+
   const message =
     customMessage ||
-    GENERAL_ERROR_MESSAGES[error] ||
+    error?.message ||
+    GENERAL_ERROR_MESSAGES[error?.code] ||
     PRISMA_ERROR_MESSAGES[error?.code] ||
     "Error desconocido";
 
-  if (typeof error === "number")
-    return NextResponse.json({ error: message }, { status: error });
+  if (typeof error?.code === "number") {
+    console.error(error.message || error.code);
+    return NextResponse.json({ error: message }, { status: error.code });
+  }
 
-  if (error?.code && PRISMA_ERROR_MESSAGES[error.code])
+  if (error?.code && PRISMA_ERROR_MESSAGES[error?.code])
     return NextResponse.json({ error: message }, { status: 400 });
 
   console.error(error);

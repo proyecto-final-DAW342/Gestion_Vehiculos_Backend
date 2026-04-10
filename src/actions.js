@@ -1,6 +1,7 @@
 "use server";
 import { v2 as cloudinary } from "cloudinary";
 import jwt from "jsonwebtoken";
+import prisma from "@/lib/prisma";
 
 // cloudinary.config({
 //   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -51,8 +52,9 @@ export async function uploadFile(prevState, file) {
 }
 
 export async function verifyUser(authHeader) {
+  //try {
   if (!authHeader) {
-    throw 401;
+    throw { code: 401 };
   }
 
   const token = authHeader.split(" ")[1] || authHeader;
@@ -61,6 +63,24 @@ export async function verifyUser(authHeader) {
   const user = await prisma.user.findUnique({ where: { dni } });
 
   if (!user) {
-    throw 401;
+    throw { code: 401 };
   }
+  //} catch (error) {
+  throw error;
+  //}
+}
+
+export async function getBodyFromRequest(request) {
+  const body = await request.json().catch(() => {
+    throw {
+      code: 400,
+      message:
+        "Error del json. El cuerpo de la petición es incorrecto. Asegurate de que existe y los campos son correctos",
+    };
+  });
+  if (!body)
+    throw {
+      code: 400,
+      message: "Error. El cuerpo es null",
+    };
 }
