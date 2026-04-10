@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { errorHandling } from "@/manejoStatus";
+import { verifyUser } from "@/actions";
 
 export async function GET(request) {
   const offset = +request.nextUrl.searchParams.get("offset") || 0;
@@ -15,40 +16,18 @@ export async function GET(request) {
     return NextResponse.json(revisiones, { status: 200 });
   } catch (error) {
     console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(500);
   }
 }
 
 export async function POST(request) {
-  const authHeader = request.headers.get("Authorization");
-
-  if (!authHeader) {
-    return NextResponse.json(
-      { error: "Unauthorized. Token expired or invalid." },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1] || authHeader;
-
   try {
-    const { id: userId } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized. Token expired or invalid." },
-        { status: 401 },
-      );
-    }
+    await verifyUser(request.headers.get("Authorization"));
 
     const { id, fecha, lugar, aprobada } = await request.json();
 
     if (id === undefined || !fecha || !lugar || aprobada === undefined) {
-      return NextResponse.json({ error: "Missing data" }, { status: 400 });
+      throw 400;
     }
 
     const revision = await prisma.revision.create({
@@ -62,16 +41,6 @@ export async function POST(request) {
 
     return NextResponse.json(revision, { status: 201 });
   } catch (error) {
-    console.log(error);
-    if (error.code === "P2002") {
-      return NextResponse.json(
-        { error: "Ya existe una revisión con ese ID" },
-        { status: 409 },
-      );
-    }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }

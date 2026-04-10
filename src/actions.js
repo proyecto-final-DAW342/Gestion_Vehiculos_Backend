@@ -1,5 +1,6 @@
 "use server";
 import { v2 as cloudinary } from "cloudinary";
+import jwt from "jsonwebtoken";
 
 // cloudinary.config({
 //   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -46,5 +47,20 @@ export async function uploadFile(prevState, file) {
     return { success: `Archivo ${file.name} subido` };
   } catch (error) {
     return { error: error.message };
+  }
+}
+
+export async function verifyUser(authHeader) {
+  if (!authHeader) {
+    throw 401;
+  }
+
+  const token = authHeader.split(" ")[1] || authHeader;
+
+  const { dni } = jwt.verify(token, process.env.JWT_SECRET);
+  const user = await prisma.user.findUnique({ where: { dni } });
+
+  if (!user) {
+    throw 401;
   }
 }

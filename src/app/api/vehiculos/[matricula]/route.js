@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { errorHandling } from "@/manejoStatus";
+import { verifyUser } from "@/actions";
 
 export async function GET(request, { params }) {
   const { matricula } = await params;
@@ -16,55 +17,31 @@ export async function GET(request, { params }) {
     });
 
     if (!vehiculo) {
-      return NextResponse.json(
-        { message: "Vehículo not found" },
-        { status: 404 },
-      );
+      throw 404;
     }
 
     return NextResponse.json(vehiculo, { status: 200 });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }
 
 export async function PATCH(request, { params }) {
   const { matricula } = await params;
-  const authHeader = request.headers.get("Authorization");
-
-  if (!authHeader) {
-    return NextResponse.json(
-      { error: "Unauthorized. Token expired or invalid." },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1] || authHeader;
 
   try {
-    const { dni } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { dni } });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized. Token expired or invalid." },
-        { status: 401 },
-      );
-    }
+    await verifyUser(request.headers.get("Authorization"));
 
     const existing = await prisma.vehiculo.findUnique({ where: { matricula } });
     if (!existing) {
-      return NextResponse.json(
-        { message: "Vehículo not found" },
-        { status: 404 },
-      );
+      throw 404;
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => {
+      throw 400;
+    });
+    if (!body) throw 400;
+
     const {
       marca,
       modelo,
@@ -116,44 +93,19 @@ export async function PATCH(request, { params }) {
 
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }
 
 export async function DELETE(request, { params }) {
   const { matricula } = await params;
-  const authHeader = request.headers.get("Authorization");
-
-  if (!authHeader) {
-    return NextResponse.json(
-      { error: "Unauthorized. Token expired or invalid." },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1] || authHeader;
 
   try {
-    const { id } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { id } });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized. Token expired or invalid." },
-        { status: 401 },
-      );
-    }
+    await verifyUser(request.headers.get("Authorization"));
 
     const existing = await prisma.vehiculo.findUnique({ where: { matricula } });
     if (!existing) {
-      return NextResponse.json(
-        { message: "Vehículo not found" },
-        { status: 404 },
-      );
+      throw 404;
     }
 
     const deleted = await prisma.vehiculo.delete({
@@ -165,10 +117,6 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json(deleted, { status: 200 });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }

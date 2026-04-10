@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { verifyUser } from "@/actions";
+import { errorHandling } from "@/manejoStatus";
 
 export async function GET(request) {
   const offset = +request.nextUrl.searchParams.get("offset") || 0;
@@ -28,27 +29,8 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const authHeader = request.headers.get("Authorization");
-
-  if (!authHeader) {
-    return NextResponse.json(
-      { error: "Unauthorized. Token expired or invalid." },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1] || authHeader;
-
   try {
-    const { dni } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { dni } });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized. Token expired or invalid." },
-        { status: 401 },
-      );
-    }
+    await verifyUser(request.headers.get("Authorization"));
 
     const {
       matricula,
@@ -115,16 +97,12 @@ export async function POST(request) {
 
     return NextResponse.json(vehiculo, { status: 201 });
   } catch (error) {
-    console.log(error);
-    if (error.code === "P2002") {
-      return NextResponse.json(
-        { error: "Ya existe un vehículo con esa matrícula o marca" },
-        { status: 409 },
+    if (error.code === "P2002")
+      return errorHandling(
+        error,
+        "Ya existe un vehículo con esa matrícula o marca",
       );
-    }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+
+    return errorHandling(error);
   }
 }
