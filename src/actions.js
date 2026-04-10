@@ -52,22 +52,22 @@ export async function uploadFile(prevState, file) {
 }
 
 export async function verifyUser(authHeader) {
-  //try {
-  if (!authHeader) {
-    throw { code: 401 };
+  try {
+    if (!authHeader) {
+      throw { code: 401 };
+    }
+
+    const token = authHeader.split(" ")[1] || authHeader;
+
+    const { dni } = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await prisma.user.findUnique({ where: { dni } });
+
+    if (!user) {
+      throw { code: 401 };
+    }
+  } catch (error) {
+    throw error;
   }
-
-  const token = authHeader.split(" ")[1] || authHeader;
-
-  const { dni } = jwt.verify(token, process.env.JWT_SECRET);
-  const user = await prisma.user.findUnique({ where: { dni } });
-
-  if (!user) {
-    throw { code: 401 };
-  }
-  //} catch (error) {
-  throw error;
-  //}
 }
 
 export async function getBodyFromRequest(request) {

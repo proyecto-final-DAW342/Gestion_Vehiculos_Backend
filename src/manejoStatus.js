@@ -21,25 +21,25 @@ const PRISMA_ERROR_MESSAGES = {
     "P2002: El objeto con esa clave primaria ya existe en la base de datos",
 };
 
-export async function errorHandling(error, customMessage = null) {
-  AUTH_ERRORS[error?.name] && (error = AUTH_ERRORS[error?.name]);
+export async function errorHandling(err, customMessage = null) {
+  AUTH_ERRORS[err?.name] && (err = AUTH_ERRORS[err?.name]);
 
   const message =
     customMessage ||
-    error?.message ||
-    GENERAL_ERROR_MESSAGES[error?.code] ||
-    PRISMA_ERROR_MESSAGES[error?.code] ||
+    err?.message ||
+    GENERAL_ERROR_MESSAGES[err?.code] ||
+    PRISMA_ERROR_MESSAGES[err?.code] ||
     "Error desconocido";
 
-  if (typeof error?.code === "number") {
-    console.error(error.message || error.code);
-    return NextResponse.json({ error: message }, { status: error.code });
+  if (typeof err?.code === "number") {
+    console.error(err.message || err.code);
+    return NextResponse.json({ error: message }, { status: err.code });
   }
 
-  if (error?.code && PRISMA_ERROR_MESSAGES[error?.code])
+  if (err?.code && PRISMA_ERROR_MESSAGES[err?.code])
     return NextResponse.json({ error: message }, { status: 400 });
 
-  console.error(error);
+  console.error(err);
   return NextResponse.json(
     { error: GENERAL_ERROR_MESSAGES[500] },
     { status: 500 },
