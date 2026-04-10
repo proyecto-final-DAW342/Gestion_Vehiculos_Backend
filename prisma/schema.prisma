@@ -80,12 +80,8 @@ model Vehiculo {
   averia   Averia? @relation(fields: [averiaId], references: [id])
   averiaId Int?
 
-  imagenPrincipal   Images @relation(fields: [imagesId], references: [id])
-  imagenPrincipalId Int
-
   imagenes     Images[]
   siguienteITV Revision[]
-  imagesId     Int
 
   @@map("vehiculos")
 }
