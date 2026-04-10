@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
+import { verifyUser } from "@/actions";
+import { errorHandling } from "@/manejoStatus";
 
 export async function GET(request) {
   const offset = +request.nextUrl.searchParams.get("offset") || 0;
@@ -19,33 +20,13 @@ export async function GET(request) {
     return NextResponse.json(imagenes, { status: 200 });
   } catch (error) {
     console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }
 
 export async function POST(request) {
-  const authHeader = request.headers.get("Authorization");
-
-  if (!authHeader) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const token = authHeader.split(" ")[1] || authHeader;
-
   try {
-    // VERIFICAMOS TOKEN
-    const { dni } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { dni } });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized. Token expired or invalid." },
-        { status: 401 },
-      );
-    }
+    await verifyUser(request.headers.get("Authorization"));
 
     const { url, nombre } = await request.json();
 
@@ -58,19 +39,6 @@ export async function POST(request) {
 
     return NextResponse.json(query, { status: 201 });
   } catch (error) {
-    console.error(error);
-    if (
-      error.name === "TokenExpiredError" ||
-      error.name === "JsonWebTokenError"
-    ) {
-      return NextResponse.json(
-        { error: "Unauthorized. Token invalid or expired." },
-        { status: 401 },
-      );
-    }
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }
