@@ -35,7 +35,7 @@ export async function POST(request) {
             format: "webp",
             aspect_ratio: "1",
             crop: "fill",
-            width: 852,
+            //width: 852,
             gravity: "center",
             invalidate: true,
             use_filename: true,
