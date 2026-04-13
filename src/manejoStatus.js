@@ -11,6 +11,7 @@ const GENERAL_ERROR_MESSAGES = {
   401: "Unauthorized. Token expirado o inválido.",
   403: "Forbidden. No puedes acceder a este recurso",
   404: "Not found. El objeto no existe.",
+  405: "Method not allowed. No puedes usar ese método",
   409: "Conflict. El objeto ya existe.",
   422: "Unprocessable Entity. Error de validación semántica.",
   500: "Internal server error",

@@ -27,9 +27,10 @@ model Conductor {
   direccion       String
   fechaNacimiento DateTime
 
+  images Images?
+
   vehiculo                Vehiculo[]
   infoEspecificaTrayectos InfoEspecificaTrayecto[]
-  images                  Images[]
 }
 
 model InfoEspecificaTrayecto {
@@ -51,9 +52,10 @@ model Trayecto {
   destino       String
   distanciaEnKm Float
 
+  viajeId Int?
+  viaje   Viaje? @relation(fields: [viajeId], references: [id])
+
   infoEspecifica InfoEspecificaTrayecto[]
-  viaje          Viaje?                   @relation(fields: [viajeId], references: [id])
-  viajeId        Int?
 }
 
 model Viaje {
@@ -71,17 +73,14 @@ model Vehiculo {
   kilometrosTotales Float
   alimentacion      String
   precio            Float    @default(0)
-  nuevo             Boolean //Esto tal vez no haga falta
   gastoPorKm        Float
 
   conductorDni String?
   conductor    Conductor? @relation(fields: [conductorDni], references: [dni])
 
-  averia   Averia? @relation(fields: [averiaId], references: [id])
-  averiaId Int?
-
-  imagenes     Images[]
-  siguienteITV Revision[]
+  imagenes   Images[]
+  revisiones Revision[]
+  averias    Averia[]
 
   @@map("vehiculos")
 }
@@ -93,8 +92,8 @@ model Revision {
   lugar    String
   aprobada Boolean
 
-  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula])
   vehiculoMatricula String?
+  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula])
 }
 
 //Para ir a la reparación de la avería hace falta un trayecto
@@ -107,9 +106,11 @@ model Averia {
   lugarReparacion         String
   costeReparacion         Float
 
-  vehiculosAveriados Vehiculo[]
+  vehiculoMatricula String?
+  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula])
 }
 
+//Cambiar Images a Image cuando no haya datos
 model Images {
   id     Int    @id @default(autoincrement())
   url    String @unique
@@ -118,6 +119,6 @@ model Images {
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: Cascade)
 
-  conductorDni String?
+  conductorDni String?    @unique
   conductor    Conductor? @relation(fields: [conductorDni], references: [dni], onDelete: Cascade)
 }

@@ -83,4 +83,6 @@ export async function getBodyFromRequest(request) {
       code: 400,
       message: "Error. El cuerpo es null",
     };
+
+  return body;
 }

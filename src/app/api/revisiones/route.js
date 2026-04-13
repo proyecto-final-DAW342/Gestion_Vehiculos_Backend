@@ -24,15 +24,14 @@ export async function POST(request) {
   try {
     await verifyUser(request.headers.get("Authorization"));
 
-    const { id, fecha, lugar, aprobada } = await request.json();
+    const { fecha, lugar, aprobada } = await request.json();
 
-    if (id === undefined || !fecha || !lugar || aprobada === undefined) {
-      throw 400;
+    if (!fecha || !lugar || aprobada === undefined) {
+      throw { code: 400 };
     }
 
     const revision = await prisma.revision.create({
       data: {
-        id,
         fecha: new Date(fecha),
         lugar,
         aprobada,
