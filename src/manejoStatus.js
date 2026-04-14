@@ -40,7 +40,7 @@ export async function errorHandling(err, customMessage = null) {
 
   if (err?.code && PRISMA_ERROR_MESSAGES[err?.code]) {
     console.error(err.message || err.code);
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 
   console.error(err);
