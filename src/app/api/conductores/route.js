@@ -13,6 +13,7 @@ export async function GET(request) {
       skip: offset,
       include: {
         vehiculo: true,
+        image: true,
       },
     });
 
@@ -48,6 +49,9 @@ export async function POST(request) {
         telefono,
         direccion,
         fechaNacimiento: new Date(fechaNacimiento),
+      },
+      include: {
+        image: true,
       },
     });
 
