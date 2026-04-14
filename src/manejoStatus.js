@@ -20,6 +20,7 @@ const GENERAL_ERROR_MESSAGES = {
 const PRISMA_ERROR_MESSAGES = {
   P2002:
     "P2002: El objeto con esa clave primaria ya existe en la base de datos",
+  P2021: "P2021: Se están llamando tablas que no existen",
 };
 
 export async function errorHandling(err, customMessage = null) {
