@@ -28,9 +28,9 @@ export async function errorHandling(err, customMessage = null) {
 
   const message =
     customMessage ||
-    err?.message ||
     GENERAL_ERROR_MESSAGES[err?.code] ||
     PRISMA_ERROR_MESSAGES[err?.code] ||
+    err?.message ||
     "Error desconocido";
 
   if (typeof err?.code === "number") {
