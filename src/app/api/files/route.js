@@ -28,12 +28,19 @@ export async function POST(request) {
   try {
     await verifyUser(request.headers.get("Authorization"));
 
-    const { url, nombre } = await request.json();
+    const { url, nombre, vehiculoMatricula, conductorDni } =
+      await request.json();
 
     const query = await prisma.images.create({
       data: {
         url,
         nombre,
+        vehiculoMatricula,
+        conductorDni,
+      },
+      include: {
+        vehiculo: true,
+        conductor: true,
       },
     });
 
