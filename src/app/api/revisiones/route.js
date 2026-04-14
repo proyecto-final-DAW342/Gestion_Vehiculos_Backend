@@ -1,22 +1,40 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
-import { verifyUser } from "@/actions";
+import { getBodyFromRequest, verifyUser } from "@/actions";
+import { createRevisionData } from "@/createEntityData";
 
 export async function GET(request) {
-  const offset = +request.nextUrl.searchParams.get("offset") || 0;
-  const limit = +request.nextUrl.searchParams.get("limit") || 10;
+  const searchParams = request.nextUrl.searchParams;
+
+  const offset = +searchParams.get("offset") || 0;
+  const limit = +searchParams.get("limit") || 10;
+  const visibleParam = searchParams.get("visible");
+
+  const revisionesFiltros = {
+    all: undefined,
+    false: false,
+  };
+
+  const filtro =
+    visibleParam in revisionesFiltros ? revisionesFiltros[visibleParam] : true;
 
   try {
     const revisiones = await prisma.revision.findMany({
       take: limit,
       skip: offset,
+      where: {
+        visible: filtro, //http://localhost:3000/api/revisiones?visible=all
+      },
+      include: {
+        vehiculo: true,
+        viaje: true,
+      },
     });
 
     return NextResponse.json(revisiones, { status: 200 });
   } catch (error) {
-    console.log(error);
-    return errorHandling(500);
+    return errorHandling(error);
   }
 }
 
@@ -24,18 +42,23 @@ export async function POST(request) {
   try {
     await verifyUser(request.headers.get("Authorization"));
 
-    const { fecha, lugar, aprobada } = await request.json();
+    const body = await getBodyFromRequest(request);
 
-    if (!fecha || !lugar || aprobada === undefined) {
+    if (
+      !body.fecha ||
+      !body.lugar ||
+      body.aprobada === undefined ||
+      !body.vehiculoMatricula ||
+      body.visible === undefined ||
+      body.costo === undefined
+    ) {
       throw { code: 400 };
     }
 
+    const data = createRevisionData(body, "post");
+
     const revision = await prisma.revision.create({
-      data: {
-        fecha: new Date(fecha),
-        lugar,
-        aprobada,
-      },
+      data,
     });
 
     return NextResponse.json(revision, { status: 201 });

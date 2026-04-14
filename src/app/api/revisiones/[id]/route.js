@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
 import { getBodyFromRequest, verifyUser } from "@/actions";
+import { createRevisionData } from "@/createEntityData";
 
 export async function GET(_request, { params }) {
   const { id } = await params;
@@ -12,6 +13,7 @@ export async function GET(_request, { params }) {
       where: { id },
       include: {
         vehiculo: true,
+        viaje: true,
       },
     });
 
@@ -36,14 +38,15 @@ export async function PATCH(request, { params }) {
       throw 404;
     }
 
-    const body = getBodyFromRequest(request);
-    const data = createDataRevision(body);
+    const body = await getBodyFromRequest(request);
+    const data = createRevisionData(body, "patch");
 
     const updated = await prisma.revision.update({
       where: { id },
       data,
       include: {
         vehiculo: true,
+        viaje: true,
       },
     });
 
