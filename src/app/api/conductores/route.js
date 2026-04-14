@@ -27,8 +27,15 @@ export async function POST(request) {
   try {
     await verifyUser(request.headers.get("Authorization"));
 
-    const { dni, nombre, apellidos, telefono, direccion, fechaNacimiento } =
-      await request.json();
+    const {
+      dni,
+      nombre,
+      apellidos,
+      telefono,
+      direccion,
+      fechaNacimiento,
+      imageId,
+    } = await request.json();
 
     if (
       !dni ||
@@ -48,10 +55,16 @@ export async function POST(request) {
         apellidos,
         telefono,
         direccion,
+        ...(imageId && {
+          image: {
+            connect: { id: Number(imageId) }, // Asegúrate de que sea Number si tu ID es Int
+          },
+        }),
         fechaNacimiento: new Date(fechaNacimiento),
       },
       include: {
         image: true,
+        vehiculo: true,
       },
     });
 
