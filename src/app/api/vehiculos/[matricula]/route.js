@@ -19,7 +19,7 @@ export async function GET(request, { params }) {
     });
 
     if (!vehiculo) {
-      throw 404;
+      throw { code: 404 };
     }
 
     return NextResponse.json(vehiculo, { status: 200 });
@@ -67,7 +67,7 @@ export async function DELETE(request, { params }) {
 
     const existing = await prisma.vehiculo.findUnique({ where: { matricula } });
     if (!existing) {
-      throw 404;
+      throw { code: 404 };
     }
 
     const deleted = await prisma.vehiculo.delete({

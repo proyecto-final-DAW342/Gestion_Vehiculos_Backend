@@ -57,6 +57,14 @@ export async function POST(request) {
 
     const data = createRevisionData(body, "post");
 
+    if (isNaN(data.fecha.getTime())) {
+      throw {
+        code: 400,
+        customMessage:
+          "La fecha es inválida. El formato esperado es AAAA-MM-DD",
+      };
+    }
+
     const revision = await prisma.revision.create({
       data,
     });

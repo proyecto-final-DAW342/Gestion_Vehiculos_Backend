@@ -74,14 +74,14 @@ export async function getBodyFromRequest(request) {
   const body = await request.json().catch(() => {
     throw {
       code: 400,
-      message:
+      customMessage:
         "Error del json. El cuerpo de la petición es incorrecto. Asegurate de que existe y los campos son correctos",
     };
   });
   if (!body)
     throw {
       code: 400,
-      message: "Error. El cuerpo es null",
+      customMessage: "Error. El cuerpo es null",
     };
 
   return body;

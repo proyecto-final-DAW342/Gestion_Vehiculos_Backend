@@ -35,7 +35,7 @@ export async function PATCH(request, { params }) {
 
     const existing = await prisma.revision.findUnique({ where: { id } });
     if (!existing) {
-      throw 404;
+      throw { code: 404 };
     }
 
     const body = await getBodyFromRequest(request);

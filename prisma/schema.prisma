@@ -27,21 +27,9 @@ model Conductor {
   direccion       String
   fechaNacimiento DateTime
 
-  images Images?
+  image Images?
 
-  vehiculo                Vehiculo[]
-  infoEspecificaTrayectos InfoEspecificaTrayecto[]
-}
-
-model InfoEspecificaTrayecto {
-  id           Int        @id
-  activo       Boolean
-  completado   Boolean //Esto tal vez no sea necesario
-  gasto        Float //Esto se peuede calcular en el backend según el vehículo y así no tengo que duplicar trayectos
-  conductor    Conductor? @relation(fields: [conductorDni], references: [dni]) // Tal vez se pueda hacer un array por si varios conductores hacen el mismo trayecto no duplicarlos
-  conductorDni String?
-  trayecto     Trayecto?  @relation(fields: [trayectoId], references: [id])
-  trayectoId   Int?
+  vehiculo Vehiculo[]
 }
 
 model Trayecto {
@@ -51,21 +39,31 @@ model Trayecto {
   origen        String
   destino       String
   distanciaEnKm Float
+  completado    Boolean //Esto tal vez no sea necesario
+  gasto         Float
 
-  viajeId Int?
-  viaje   Viaje? @relation(fields: [viajeId], references: [id])
-
-  infoEspecifica InfoEspecificaTrayecto[]
+  viajeId Int
+  viaje   Viaje @relation(fields: [viajeId], references: [id], onDelete: Cascade)
 }
 
+//Aunque no salga en la base de datos. Al devolver el json de un Viaje puedo añadir el campo gasto sumando el gasto de todos sus trayectos
 model Viaje {
-  id        Int        @id
+  id        Int     @id @default(autoincrement())
+  kmSalida  Float
+  kmLlegada Float
+  visible   Boolean
+
+  vehiculoMatricula String?
+  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
+
+  revision  Revision?
   trayectos Trayecto[]
 }
 
+//Se podría poner un uid para permitir modificar la matrícula fácilmente. Esto se hará cuando la base de datos no tengo datos
 model Vehiculo {
   matricula         String   @id @default(uuid())
-  marca             String   @unique
+  marca             String
   modelo            String
   fechaCompra       DateTime
   anyosAntiguedad   Int
@@ -76,24 +74,31 @@ model Vehiculo {
   gastoPorKm        Float
 
   conductorDni String?
-  conductor    Conductor? @relation(fields: [conductorDni], references: [dni])
+  conductor    Conductor? @relation(fields: [conductorDni], references: [dni], onDelete: SetNull)
 
+  //Cuando una revisión de complete, una avería se resuelva o un viaje termine, se puede preguntar al usuario si desea ocultarla 
+  //Cuando un vehículo se borre, sus revisiones, averias y viajes se ocutarán (tal vez preguntándole al usuario) para que sigan siendo accesibles
   imagenes   Images[]
   revisiones Revision[]
   averias    Averia[]
+  viajes     Viaje[]
 
   @@map("vehiculos")
 }
 
-//Para ir a la revision hace falta un trayecto
 model Revision {
   id       String   @id @default(uuid())
   fecha    DateTime
   lugar    String
   aprobada Boolean
+  costo    Float
+  visible  Boolean
 
   vehiculoMatricula String?
-  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula])
+  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
+
+  viajeId Int?   @unique
+  viaje   Viaje? @relation(fields: [viajeId], references: [id], onDelete: SetNull)
 }
 
 //Para ir a la reparación de la avería hace falta un trayecto
@@ -107,7 +112,7 @@ model Averia {
   costeReparacion         Float
 
   vehiculoMatricula String?
-  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula])
+  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
 }
 
 //Cambiar Images a Image cuando no haya datos

@@ -24,7 +24,7 @@ export async function POST(request) {
     const buffer = Buffer.from(arrayBuffer);
 
     if (!buffer.length) {
-      throw { code: 400, message: "Image is required" };
+      throw { code: 400, customMessage: "Image is required" };
     }
 
     const result = await new Promise((resolve, reject) => {
