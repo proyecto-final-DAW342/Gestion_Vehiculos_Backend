@@ -13,7 +13,6 @@ export async function GET(request) {
       skip: offset,
       include: {
         vehiculo: true,
-        infoEspecificaTrayectos: true,
       },
     });
 
