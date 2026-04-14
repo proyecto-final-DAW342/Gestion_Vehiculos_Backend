@@ -1,12 +1,32 @@
-export const createRevisionData = (body) => {
-  const { fecha, lugar, aprobada, vehiculoMatricula } = body;
+export const createRevisionData = (body, method) => {
+  method = method.toLowerCase();
+  if (method != "post" && method != "patch") throw { code: 405 };
 
   const data = {};
-  if (lugar !== undefined) data.lugar = lugar;
-  if (aprobada !== undefined) data.aprobada = aprobada;
-  if (fecha !== undefined) data.fecha = new Date(fecha);
-  if (vehiculoMatricula !== undefined)
+
+  const { fecha, lugar, aprobada, costo, visible, vehiculoMatricula, viajeId } =
+    body;
+
+  if (method === "patch") {
+    if (lugar !== undefined) data.lugar = lugar;
+    if (aprobada !== undefined) data.aprobada = aprobada;
+    if (fecha !== undefined) data.fecha = new Date(fecha);
+    if (costo !== undefined) data.costo = costo;
+    if (visible !== undefined) data.visible = visible;
+    if (vehiculoMatricula !== undefined)
+      data.vehiculoMatricula = vehiculoMatricula;
+    if (viajeId !== undefined) data.viajeId = viajeId;
+  }
+
+  if (method === "post") {
+    data.fecha = new Date(fecha);
+    data.lugar = lugar;
+    data.aprobada = aprobada;
+    data.costo = costo;
+    data.visible = visible;
     data.vehiculoMatricula = vehiculoMatricula;
+    data.viajeId = viajeId;
+  }
 
   return data;
 };
