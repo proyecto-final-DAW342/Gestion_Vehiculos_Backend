@@ -11,7 +11,6 @@ export async function GET(request, { params }) {
       where: { dni },
       include: {
         vehiculo: true,
-        infoEspecificaTrayectos: true,
       },
     });
 
@@ -91,27 +90,9 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   const { dni } = await params;
-  const authHeader = request.headers.get("Authorization");
-
-  if (!authHeader) {
-    return NextResponse.json(
-      { error: "Unauthorized. Token expired or invalid." },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1] || authHeader;
 
   try {
-    const { id } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { id } });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized. Token expired or invalid." },
-        { status: 401 },
-      );
-    }
+    await verifyUser(request.headers.get("Authorization"));
 
     const existing = await prisma.conductor.findUnique({ where: { dni } });
     if (!existing) {
