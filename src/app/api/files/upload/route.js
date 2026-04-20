@@ -20,12 +20,14 @@ export async function POST(request) {
   try {
     await verifyUser(request.headers.get("Authorization"));
 
-    const arrayBuffer = await request.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const formData = await request.formData();
 
-    if (!buffer.length) {
-      throw { code: 400, customMessage: "Image is required" };
-    }
+    const file = formData.get("image");
+    const vehiculoMatricula = formData.get("vehiculoMatricula");
+    const conductorDni = formData.get("conductorDNI");
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader
@@ -53,6 +55,8 @@ export async function POST(request) {
       data: {
         url: result.url,
         nombre: result.display_name,
+        vehiculoMatricula: vehiculoMatricula,
+        conductorDni: conductorDni,
       },
     });
 
