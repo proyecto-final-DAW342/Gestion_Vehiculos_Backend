@@ -1,7 +1,8 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
-import { verifyUser } from "@/actions";
+import { getBodyFromRequest, verifyUser } from "@/actions";
+import { createConductorData } from "@/createEntityData";
 
 export async function GET(request) {
   const offset = +request.nextUrl.searchParams.get("offset") || 0;
@@ -25,43 +26,25 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    await verifyUser(request.headers.get("Authorization"));
+    await verifyUser(request.headers.get("Authorization")); //Podría juntar verifyUser, getBodyFromRequest y la comprobación del body en una misma función
 
-    const {
-      dni,
-      nombre,
-      apellidos,
-      telefono,
-      direccion,
-      fechaNacimiento,
-      imageId,
-    } = await request.json();
+    const body = await getBodyFromRequest(request);
 
     if (
-      !dni ||
-      !nombre ||
-      !apellidos ||
-      !telefono ||
-      !direccion ||
-      !fechaNacimiento
+      !body.dni ||
+      !body.nombre ||
+      !body.apellidos ||
+      !body.telefono ||
+      !body.direccion ||
+      !body.fechaNacimiento
     ) {
       return NextResponse.json({ error: "Missing data" }, { status: 400 });
     }
 
+    const data = createConductorData(body, "post");
+
     const conductor = await prisma.conductor.create({
-      data: {
-        dni,
-        nombre,
-        apellidos,
-        telefono,
-        direccion,
-        ...(imageId && {
-          image: {
-            connect: { id: Number(imageId) }, // Asegúrate de que sea Number si tu ID es Int
-          },
-        }),
-        fechaNacimiento: new Date(fechaNacimiento),
-      },
+      data,
       include: {
         image: true,
         vehiculo: true,

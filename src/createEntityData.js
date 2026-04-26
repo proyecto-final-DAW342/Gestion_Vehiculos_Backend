@@ -1,3 +1,53 @@
+export const createConductorData = (body, method) => {
+  method = method.toLowerCase();
+  if (method != "post" && method != "patch") throw { code: 405 };
+
+  const data = {};
+
+  const {
+    dni,
+    nombre,
+    apellidos,
+    telefono,
+    direccion,
+    fechaNacimiento,
+    vehiculo,
+    imageId,
+  } = body;
+
+  /*if (method === "patch") {
+    if (lugar !== undefined) data.lugar = lugar;
+    if (aprobada !== undefined) data.aprobada = aprobada;
+    if (fecha !== undefined) data.fecha = new Date(fecha);
+    if (costo !== undefined) data.costo = costo;
+    if (visible !== undefined) data.visible = visible;
+    if (vehiculoMatricula !== undefined)
+      data.vehiculoMatricula = vehiculoMatricula;
+    if (viajeId !== undefined) data.viajeId = viajeId;
+  }*/
+
+  if (method === "post") {
+    data.dni = dni;
+    data.nombre = nombre;
+    data.apellidos = apellidos;
+    data.telefono = telefono;
+    data.direccion = direccion;
+    data.fechaNacimiento = new Date(fechaNacimiento);
+    if (imageId) {
+      data.image = {
+        connect: { id: Number(imageId) },
+      };
+    }
+    if (vehiculo && vehiculo.length) {
+      data.vehiculo = {
+        connect: vehiculo.map((matricula) => ({ matricula })),
+      };
+    }
+  }
+
+  return data;
+};
+
 export const createRevisionData = (body, method) => {
   method = method.toLowerCase();
   if (method != "post" && method != "patch") throw { code: 405 };
