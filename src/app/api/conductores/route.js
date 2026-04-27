@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
-import { getBodyFromRequest, verifyUser } from "@/actions";
+import { getVerifiedBody } from "@/actions";
 import { createConductorData } from "@/createEntityData";
 
 export async function GET(request) {
@@ -26,22 +26,9 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    await verifyUser(request.headers.get("Authorization")); //Podría juntar verifyUser, getBodyFromRequest y la comprobación del body en una misma función
+    const body = await getVerifiedBody(request, "CONDUCTOR");
 
-    const body = await getBodyFromRequest(request);
-
-    if (
-      !body.dni ||
-      !body.nombre ||
-      !body.apellidos ||
-      !body.telefono ||
-      !body.direccion ||
-      !body.fechaNacimiento
-    ) {
-      return NextResponse.json({ error: "Missing data" }, { status: 400 });
-    }
-
-    const data = createConductorData(body, "post");
+    const data = await createConductorData(body, "post");
 
     const conductor = await prisma.conductor.create({
       data,

@@ -1,7 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import jwt, { verify } from "jsonwebtoken";
-import { verifyUser } from "@/actions";
+import { getBodyFromRequest, verifyUser } from "@/actions";
 
 export async function GET(request, { params }) {
   const { dni } = await params;
@@ -42,13 +41,10 @@ export async function PATCH(request, { params }) {
       include: { image: true },
     });
     if (!existing) {
-      return NextResponse.json(
-        { message: "Conductor not found" },
-        { status: 404 },
-      );
+      throw { code: 404 };
     }
 
-    const body = await request.json();
+    const body = await getBodyFromRequest(request);
     const { nombre, apellidos, telefono, direccion, fechaNacimiento, imageId } =
       body;
 
@@ -69,6 +65,8 @@ export async function PATCH(request, { params }) {
       }
     }
 
+    //const data = createConductorData(body, "patch");
+
     const updatedConductor = await prisma.conductor.update({
       where: { dni },
       data,
@@ -80,11 +78,7 @@ export async function PATCH(request, { params }) {
 
     return NextResponse.json(updatedConductor, { status: 200 });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorhandling(error);
   }
 }
 

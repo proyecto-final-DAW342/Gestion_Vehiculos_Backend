@@ -2,6 +2,17 @@
 import { v2 as cloudinary } from "cloudinary";
 import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
+import {
+  verifyConductorBody,
+  verifyVehiculoBody,
+  verifyRevisionBody,
+} from "./verifyEntityBody";
+
+const VERIFY = {
+  CONDUCTOR: verifyConductorBody,
+  VEHICULO: verifyVehiculoBody,
+  REVISION: verifyRevisionBody,
+};
 
 // cloudinary.config({
 //   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -75,7 +86,7 @@ export async function getBodyFromRequest(request) {
     throw {
       code: 400,
       customMessage:
-        "Error del json. El cuerpo de la petición es incorrecto. Asegurate de que existe y los campos son correctos",
+        "Error del json. El cuerpo de la petición es incorrecto. Asegurate de que existe y no tiene errores",
     };
   });
   if (!body)
@@ -85,4 +96,17 @@ export async function getBodyFromRequest(request) {
     };
 
   return body;
+}
+
+export async function getVerifiedBody(request, type) {
+  try {
+    await verifyUser(request.headers.get("Authorization"));
+    const body = await getBodyFromRequest(request);
+
+    VERIFY[type.toUpperCase()](body);
+
+    return body;
+  } catch (error) {
+    throw error;
+  }
 }

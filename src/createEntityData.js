@@ -1,4 +1,4 @@
-export const createConductorData = (body, method) => {
+export const createConductorData = async (body, method) => {
   method = method.toLowerCase();
   if (method != "post" && method != "patch") throw { code: 405 };
 
@@ -15,16 +15,33 @@ export const createConductorData = (body, method) => {
     imageId,
   } = body;
 
-  /*if (method === "patch") {
-    if (lugar !== undefined) data.lugar = lugar;
-    if (aprobada !== undefined) data.aprobada = aprobada;
-    if (fecha !== undefined) data.fecha = new Date(fecha);
-    if (costo !== undefined) data.costo = costo;
-    if (visible !== undefined) data.visible = visible;
-    if (vehiculoMatricula !== undefined)
-      data.vehiculoMatricula = vehiculoMatricula;
-    if (viajeId !== undefined) data.viajeId = viajeId;
-  }*/
+  if (method === "patch") {
+    const data = {};
+    if (nombre !== undefined) data.nombre = nombre;
+    if (apellidos !== undefined) data.apellidos = apellidos;
+    if (telefono !== undefined) data.telefono = telefono;
+    if (direccion !== undefined) data.direccion = direccion;
+    if (fechaNacimiento !== undefined)
+      data.fechaNacimiento = new Date(fechaNacimiento);
+    if (imageId !== undefined) {
+      if (existing.image)
+        await prisma.images.delete({ where: { id: existing.image.id } });
+      if (imageId !== null) {
+        data.image = {
+          create: {
+            url: urlImagen,
+            nombre: nombreImagen,
+          },
+        };
+      }
+    }
+
+    if (vehiculo !== undefined) {
+      data.vehiculo = {
+        connect: vehiculo.map((matricula) => ({ matricula })),
+      };
+    }
+  }
 
   if (method === "post") {
     data.dni = dni;
