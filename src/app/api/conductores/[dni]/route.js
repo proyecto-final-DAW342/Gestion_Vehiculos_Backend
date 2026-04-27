@@ -1,6 +1,13 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { getBodyFromRequest, verifyUser } from "@/actions";
+import {
+  getBodyFromFormData,
+  getBodyFromRequest,
+  uploadFile,
+  verifyUser,
+} from "@/actions";
+import { errorHandling } from "@/manejoStatus";
+import { createConductorData } from "@/createEntityData";
 
 export async function GET(request, { params }) {
   const { dni } = await params;
@@ -32,6 +39,7 @@ export async function GET(request, { params }) {
 
 export async function PATCH(request, { params }) {
   const { dni } = await params;
+  let body;
 
   try {
     await verifyUser(request.headers.get("Authorization"));
@@ -44,28 +52,17 @@ export async function PATCH(request, { params }) {
       throw { code: 404 };
     }
 
-    const body = await getBodyFromRequest(request);
-    const { nombre, apellidos, telefono, direccion, fechaNacimiento, imageId } =
-      body;
+    const contentType = request.headers.get("content-type") || "";
 
-    const data = {};
-    if (nombre !== undefined) data.nombre = nombre;
-    if (apellidos !== undefined) data.apellidos = apellidos;
-    if (telefono !== undefined) data.telefono = telefono;
-    if (direccion !== undefined) data.direccion = direccion;
-    if (fechaNacimiento !== undefined)
-      data.fechaNacimiento = new Date(fechaNacimiento);
-    if (imageId !== undefined) {
-      if (existing.image)
-        await prisma.images.delete({ where: { id: existing.image.id } });
-      if (imageId !== null) {
-        data.image = {
-          connect: { id: imageId },
-        };
-      }
+    if (contentType.includes("application/json")) {
+      body = await getBodyFromRequest(request);
+      if (body.image !== undefined && body.image)
+        body.image.fromCloudinary = false;
+    } else if (contentType.includes("multipart/form-data")) {
+      body = await getBodyFromFormData(request);
     }
 
-    //const data = createConductorData(body, "patch");
+    const data = await createConductorData(body, "patch", existing);
 
     const updatedConductor = await prisma.conductor.update({
       where: { dni },
@@ -78,7 +75,7 @@ export async function PATCH(request, { params }) {
 
     return NextResponse.json(updatedConductor, { status: 200 });
   } catch (error) {
-    return errorhandling(error);
+    return errorHandling(error);
   }
 }
 

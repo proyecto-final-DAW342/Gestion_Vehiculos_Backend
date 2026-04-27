@@ -1,4 +1,6 @@
-export const createConductorData = async (body, method) => {
+import cloudinary from "./lib/cloudinary";
+
+export const createConductorData = async (body, method, existing = null) => {
   method = method.toLowerCase();
   if (method != "post" && method != "patch") throw { code: 405 };
 
@@ -12,25 +14,29 @@ export const createConductorData = async (body, method) => {
     direccion,
     fechaNacimiento,
     vehiculo,
-    imageId,
+    image,
   } = body;
 
   if (method === "patch") {
-    const data = {};
     if (nombre !== undefined) data.nombre = nombre;
     if (apellidos !== undefined) data.apellidos = apellidos;
     if (telefono !== undefined) data.telefono = telefono;
     if (direccion !== undefined) data.direccion = direccion;
     if (fechaNacimiento !== undefined)
       data.fechaNacimiento = new Date(fechaNacimiento);
-    if (imageId !== undefined) {
-      if (existing.image)
-        await prisma.images.delete({ where: { id: existing.image.id } });
-      if (imageId !== null) {
+    if (image !== undefined) {
+      if (existing.image && existing.image.fromCloudinary) {
+        await cloudinary.uploader.destroy(existing.image.nombre);
+        const id = existing.image.id;
+        await prisma.images.delete({ where: { id } });
+      }
+
+      if (image.url !== null) {
         data.image = {
           create: {
-            url: urlImagen,
-            nombre: nombreImagen,
+            url: image.url,
+            nombre: image.name,
+            fromCloudinary: image.fromCloudinary,
           },
         };
       }
@@ -50,9 +56,13 @@ export const createConductorData = async (body, method) => {
     data.telefono = telefono;
     data.direccion = direccion;
     data.fechaNacimiento = new Date(fechaNacimiento);
-    if (imageId) {
+    if (image) {
       data.image = {
-        connect: { id: Number(imageId) },
+        create: {
+          url: image.url,
+          nombre: image.name,
+          fromCloudinary: image.fromCloudinary,
+        },
       };
     }
     if (vehiculo && vehiculo.length) {

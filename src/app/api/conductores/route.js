@@ -1,8 +1,9 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
-import { getVerifiedBody } from "@/actions";
+import { getBodyFromFormData, getVerifiedBody } from "@/actions";
 import { createConductorData } from "@/createEntityData";
+import { verifyConductorBody } from "@/verifyEntityBody";
 
 export async function GET(request) {
   const offset = +request.nextUrl.searchParams.get("offset") || 0;
@@ -25,8 +26,19 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  let body;
   try {
-    const body = await getVerifiedBody(request, "CONDUCTOR");
+    const contentType = request.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      body = await getVerifiedBody(request, "CONDUCTOR");
+      if (body.image) {
+        body.image.fromCloudinary = false;
+      }
+    } else if (contentType.includes("multipart/form-data")) {
+      body = await getBodyFromFormData(request);
+      verifyConductorBody(body);
+    }
 
     const data = await createConductorData(body, "post");
 

@@ -22,17 +22,17 @@ const VERIFY = {
 
 cloudinary.config(process.env.CLOUDINARY_URL || "");
 
-export async function uploadFile(prevState, file) {
+export async function uploadFile(file) {
   const fileBuffer = await file.arrayBuffer();
 
-  console.log(file);
+  //console.log(file);
 
   let mime = file.type;
   let encoding = "base64";
   let base64Data = Buffer.from(fileBuffer).toString("base64");
   let fileUri = "data:" + mime + ";" + encoding + "," + base64Data;
 
-  console.log(fileUri);
+  //console.log(fileUri);
 
   const uploadToCloudinary = () => {
     return new Promise((resolve, reject) => {
@@ -56,7 +56,7 @@ export async function uploadFile(prevState, file) {
     const result = await uploadToCloudinary();
     // let imageUrl = result.secure_url;
 
-    return { success: `Archivo ${file.name} subido` };
+    return { name: result.public_id, url: result.url, fromCloudinary: true };
   } catch (error) {
     return { error: error.message };
   }
@@ -94,6 +94,21 @@ export async function getBodyFromRequest(request) {
       code: 400,
       customMessage: "Error. El cuerpo es null",
     };
+
+  return body;
+}
+
+export async function getBodyFromFormData(request) {
+  let body = {};
+  let image = {};
+  const formData = await request.formData();
+  for (let [key, value] of formData) {
+    if (key == "image") {
+      value = await uploadFile(value);
+    }
+
+    body[key] = value;
+  }
 
   return body;
 }
