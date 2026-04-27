@@ -54,7 +54,8 @@ export async function POST(request) {
     const query = await prisma.images.create({
       data: {
         url: result.url,
-        nombre: result.display_name,
+        nombre: result.public_id,
+        fromCloudinary: true,
         vehiculoMatricula: vehiculoMatricula,
         conductorDni: conductorDni,
       },

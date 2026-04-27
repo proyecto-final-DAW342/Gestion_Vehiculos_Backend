@@ -35,6 +35,7 @@ export async function POST(request) {
       data: {
         url,
         nombre,
+        fromCloudinary: false,
         vehiculoMatricula,
         conductorDni,
       },

@@ -117,9 +117,10 @@ model Averia {
 
 //Cambiar Images a Image cuando no haya datos
 model Images {
-  id     Int    @id @default(autoincrement())
-  url    String @unique
-  nombre String @unique
+  id             Int     @id @default(autoincrement())
+  url            String  @unique
+  nombre         String  @unique
+  fromCloudinary Boolean
 
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: Cascade)
