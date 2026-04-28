@@ -1,4 +1,5 @@
 import cloudinary from "./lib/cloudinary";
+import prisma from "./lib/prisma";
 
 export const createConductorData = async (body, method, existing = null) => {
   method = method.toLowerCase();
