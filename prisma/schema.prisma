@@ -117,7 +117,7 @@ model Averia {
 
 //Cambiar Images a Image cuando no haya datos
 model Images {
-  id             Int     @id @default(autoincrement())
+  id             String  @id @default(uuid())
   url            String  @unique
   nombre         String  @unique
   fromCloudinary Boolean
