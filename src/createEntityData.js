@@ -27,9 +27,9 @@ export const createConductorData = async (body, method, existing = null) => {
     if (image !== undefined) {
       if (existing.image && existing.image.fromCloudinary) {
         await cloudinary.uploader.destroy(existing.image.nombre);
-        const id = existing.image.id;
-        await prisma.images.delete({ where: { id } });
       }
+      const id = existing.image.id;
+      await prisma.images.delete({ where: { id } });
 
       if (image.url !== null) {
         data.image = {
