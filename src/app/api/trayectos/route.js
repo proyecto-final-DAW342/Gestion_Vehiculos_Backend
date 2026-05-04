@@ -1,92 +1,43 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-
-
+import { errorHandling } from "@/manejoStatus";
+import { getVerifiedBody, verifyUser } from "@/actions";
+import { createTrayectoData } from "@/createEntityData";
 
 export async function GET(request) {
-    const offset = +request.nextUrl.searchParams.get("offset") || 0;
-    const limit = +request.nextUrl.searchParams.get("limit") || 10;
+  const offset = +request.nextUrl.searchParams.get("offset") || 0;
+  const limit = +request.nextUrl.searchParams.get("limit") || 10;
 
-    try {
-        const trayectos = await prisma.trayecto.findMany({
-            take: limit,
-            skip: offset,
-            include: {
-                infoEspecifica: true,
-                viaje: true,
-            },
-        });
+  try {
+    const trayectos = await prisma.trayecto.findMany({
+      take: limit,
+      skip: offset,
+      include: {
+        viaje: true,
+      },
+    });
 
-        return NextResponse.json(trayectos, { status: 200 });
-    } catch (error) {
-        console.log(error);
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        );
-    }
+    return NextResponse.json(trayectos, { status: 200 });
+  } catch (error) {
+    return errorHandling(error);
+  }
 }
 
-
-
 export async function POST(request) {
-    const authHeader = request.headers.get("Authorization");
+  try {
+    const body = getVerifiedBody(request, "TRAYECTO");
 
-    if (!authHeader) {
-        return NextResponse.json(
-            { error: "Unauthorized. Token expired or invalid." },
-            { status: 401 }
-        );
-    }
+    const data = createTrayectoData(body, "post");
 
-    const token = authHeader.split(' ')[1] || authHeader;
+    const trayecto = await prisma.trayecto.create({
+      data,
+      include: {
+        viaje: true,
+      },
+    });
 
-    try {
-        const { id: userId } = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-
-        if (!user) {
-            return NextResponse.json(
-                { error: "Unauthorized. Token expired or invalid." },
-                { status: 401 }
-            );
-        }
-
-        const { id, horaSalida, horaLlegada, origen, destino, distanciaEnKm, viajeId } = await request.json();
-
-        if (id === undefined || !horaSalida || !horaLlegada || !origen || !destino || distanciaEnKm === undefined) {
-            return NextResponse.json(
-                { error: "Missing data" },
-                { status: 400 }
-            );
-        }
-
-        const data = {
-            id,
-            horaSalida: new Date(horaSalida),
-            horaLlegada: new Date(horaLlegada),
-            origen,
-            destino,
-            distanciaEnKm,
-        };
-
-        if (viajeId !== undefined) data.viajeId = viajeId;
-
-        const trayecto = await prisma.trayecto.create({ data });
-
-        return NextResponse.json(trayecto, { status: 201 });
-    } catch (error) {
-        console.log(error);
-        if (error.code === 'P2002') {
-            return NextResponse.json(
-                { error: "Ya existe un trayecto con ese ID" },
-                { status: 409 }
-            );
-        }
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        );
-    }
+    return NextResponse.json(trayecto, { status: 201 });
+  } catch (error) {
+    return errorHandling(error);
+  }
 }

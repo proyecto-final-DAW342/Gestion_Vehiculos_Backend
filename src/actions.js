@@ -6,13 +6,8 @@ import {
   verifyConductorBody,
   verifyVehiculoBody,
   verifyRevisionBody,
+  verifyTrayectoBody,
 } from "./verifyEntityBody";
-
-const VERIFY = {
-  CONDUCTOR: verifyConductorBody,
-  VEHICULO: verifyVehiculoBody,
-  REVISION: verifyRevisionBody,
-};
 
 // cloudinary.config({
 //   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -21,6 +16,13 @@ const VERIFY = {
 // });
 
 cloudinary.config(process.env.CLOUDINARY_URL || "");
+
+const VERIFY = {
+  CONDUCTOR: verifyConductorBody,
+  VEHICULO: verifyVehiculoBody,
+  REVISION: verifyRevisionBody,
+  TRAYECTO: verifyTrayectoBody,
+};
 
 export async function uploadFile(file) {
   const fileBuffer = await file.arrayBuffer();
@@ -99,12 +101,27 @@ export async function getBodyFromRequest(request) {
 }
 
 export async function getBodyFromFormData(request) {
+  const fileLimit = 5;
   let body = {};
-  let image = {};
   const formData = await request.formData();
   for (let [key, value] of formData) {
-    if (key == "image") {
+    if (body[key] !== undefined)
+      if (!Array.isArray(body[key])) body[key] = [body[key]];
+
+    if (value instanceof File && value.size) {
+      if (Array.isArray(body[key]) && body[key].length >= fileLimit) {
+        throw {
+          code: 400,
+          customMessage: "El límite de imágenes es " + fileLimit,
+        };
+      }
+
       value = await uploadFile(value);
+    }
+
+    if (body[key] !== undefined) {
+      body[key].push(value);
+      continue;
     }
 
     body[key] = value;
@@ -113,15 +130,61 @@ export async function getBodyFromFormData(request) {
   return body;
 }
 
+export const verifyBody = async (body, type) => {
+  try {
+    VERIFY[type](body);
+    body.checked = true;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export async function getVerifiedBody(request, type) {
   try {
-    await verifyUser(request.headers.get("Authorization"));
-    const body = await getBodyFromRequest(request);
+    const body = await getBody(request, type.toUpperCase());
 
-    VERIFY[type.toUpperCase()](body);
+    await verifyBody(body, type.toUpperCase());
 
     return body;
   } catch (error) {
     throw error;
+  }
+}
+
+export async function getBody(request, type) {
+  const contentType = request.headers.get("content-type") || "";
+  let body;
+
+  try {
+    await verifyUser(request.headers.get("Authorization"));
+
+    if (contentType.includes("application/json"))
+      body = await getBodyFromRequest(request);
+
+    if (contentType.includes("multipart/form-data"))
+      body = await getBodyFromFormData(request);
+
+    body.checked = false;
+
+    normalizeBody(body, type);
+
+    return body;
+  } catch (error) {
+    throw error;
+  }
+}
+
+function normalizeBody(body, type) {
+  if (
+    type === "CONDUCTOR" &&
+    body.image &&
+    Array.isArray(body.image) &&
+    body.image[0]
+  ) {
+    body.image.forEach((img, i) => {
+      i && cloudinary.uploader.destroy(img.nombre);
+    });
+
+    body.image = body.image[0];
   }
 }

@@ -1,6 +1,53 @@
 import cloudinary from "./lib/cloudinary";
 import prisma from "./lib/prisma";
 
+export const createUserData = (body) => {
+  const data = {};
+
+  const { email, password, fullName, telefono, isActive, roles } = body;
+
+  if (email) data.email = email;
+  if (password) data.password = password;
+  if (fullName) data.fullName = fullName;
+  if (telefono) data.telefono = telefono;
+  if (isActive) data.isActive = isActive;
+  if (roles) data.roles = roles;
+
+  return data;
+};
+
+export const createTrayectoData = (body, method) => {
+  method = method.toLowerCase();
+  if (method != "post" && method != "patch") throw { code: 405 };
+
+  const data = {};
+
+  const { horaSalida, horaLlegada, origen, destino, distanciaEnKm, viajeId } =
+    body;
+
+  if (method === "patch") {
+    if (lugar !== undefined) data.lugar = lugar;
+    if (aprobada !== undefined) data.aprobada = aprobada;
+    if (fecha !== undefined) data.fecha = new Date(fecha);
+    if (costo !== undefined) data.costo = costo;
+    if (visible !== undefined) data.visible = visible;
+    if (vehiculoMatricula !== undefined)
+      data.vehiculoMatricula = vehiculoMatricula;
+    if (viajeId !== undefined) data.viajeId = viajeId;
+  }
+
+  if (method === "post") {
+    data.horaSalida = new Date(horaSalida);
+    data.horaLlegada = new Date(horaLlegada);
+    data.origen = origen;
+    data.destino = destino;
+    data.distanciaEnKm = distanciaEnKm;
+    data.viajeId = viajeId;
+  }
+
+  return data;
+};
+
 export const createConductorData = async (body, method, existing = null) => {
   method = method.toLowerCase();
   if (method != "post" && method != "patch") throw { code: 405 };
@@ -26,11 +73,12 @@ export const createConductorData = async (body, method, existing = null) => {
     if (fechaNacimiento !== undefined)
       data.fechaNacimiento = new Date(fechaNacimiento);
     if (image !== undefined) {
-      if (existing.image && existing.image.fromCloudinary) {
-        await cloudinary.uploader.destroy(existing.image.nombre);
+      if (existing.image) {
+        if (existing.image.fromCloudinary)
+          await cloudinary.uploader.destroy(existing.image.nombre);
+        const id = existing.image.id;
+        await prisma.images.delete({ where: { id } });
       }
-      const id = existing.image.id;
-      await prisma.images.delete({ where: { id } });
 
       if (image.url !== null) {
         data.image = {

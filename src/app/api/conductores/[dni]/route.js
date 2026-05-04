@@ -1,11 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import {
-  getBodyFromFormData,
-  getBodyFromRequest,
-  uploadFile,
-  verifyUser,
-} from "@/actions";
+import { getBody, verifyUser } from "@/actions";
 import { errorHandling } from "@/manejoStatus";
 import { createConductorData } from "@/createEntityData";
 
@@ -39,7 +34,6 @@ export async function GET(request, { params }) {
 
 export async function PATCH(request, { params }) {
   const { dni } = await params;
-  let body;
 
   try {
     await verifyUser(request.headers.get("Authorization"));
@@ -52,15 +46,7 @@ export async function PATCH(request, { params }) {
       throw { code: 404 };
     }
 
-    const contentType = request.headers.get("content-type") || "";
-
-    if (contentType.includes("application/json")) {
-      body = await getBodyFromRequest(request);
-      if (body.image !== undefined && body.image)
-        body.image.fromCloudinary = false;
-    } else if (contentType.includes("multipart/form-data")) {
-      body = await getBodyFromFormData(request);
-    }
+    const body = await getBody(request, "CONDUCTOR");
 
     const data = await createConductorData(body, "patch", existing);
 
@@ -96,10 +82,6 @@ export async function DELETE(request, { params }) {
     const deleted = await prisma.conductor.delete({ where: { dni } });
     return NextResponse.json(deleted, { status: 200 });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }

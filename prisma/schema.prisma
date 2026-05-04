@@ -101,15 +101,15 @@ model Revision {
   viaje   Viaje? @relation(fields: [viajeId], references: [id], onDelete: SetNull)
 }
 
-//Para ir a la reparación de la avería hace falta un trayecto
+//Para ir a la reparación de la avería puede hacer falta o no un trayecto
 model Averia {
-  id                      Int      @id
+  id                      String    @id @default(uuid())
   descripcion             String
   fechaAveria             DateTime
-  fechaComienzoReparacion DateTime
-  fechaFinReparacion      DateTime
-  lugarReparacion         String
-  costeReparacion         Float
+  fechaComienzoReparacion DateTime?
+  fechaFinReparacion      DateTime?
+  lugarReparacion         String?
+  costeReparacion         Float?
 
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
