@@ -40,6 +40,9 @@ export async function PATCH(request, { params }) {
     const updatedConductor = await prisma.user.update({
       where: { dni },
       data,
+      include: {
+        conductor: true,
+      },
     });
 
     return NextResponse.json(updatedConductor, { status: 200 });

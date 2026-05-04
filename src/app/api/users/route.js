@@ -33,7 +33,11 @@ export async function GET(request) {
       );
     }
 
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      include: {
+        conductor: true,
+      },
+    });
 
     if (!users) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });

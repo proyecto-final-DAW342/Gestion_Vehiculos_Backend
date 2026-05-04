@@ -16,6 +16,8 @@ model User {
   isActive Boolean  @default(true)
   roles    String[] @default(["user"])
 
+  conductor Conductor?
+
   @@map("users")
 }
 
@@ -30,6 +32,9 @@ model Conductor {
   image Images?
 
   vehiculo Vehiculo[]
+
+  userDni String? @unique
+  user    User?   @relation(fields: [userDni], references: [dni])
 }
 
 model Trayecto {

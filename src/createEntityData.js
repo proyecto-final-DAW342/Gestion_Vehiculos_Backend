@@ -1,31 +1,64 @@
 import cloudinary from "./lib/cloudinary";
 import prisma from "./lib/prisma";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
 
 export const createUserData = (body) => {
-  const data = {};
+  let plantilla;
+  const plantillaBase = {
+    dni: z.string(),
+    email: z.email(),
+    password: z.string(),
+    fullName: z.string(),
+    telefono: z.int().optional(),
+    isActive: z.boolean(),
+    roles: z.array(z.string()),
+  };
+  let data = {};
 
-  const { email, password, fullName, telefono, isActive, roles } = body;
+  const { dni } = body;
 
-  if (email) data.email = email;
-  if (password) data.password = password;
-  if (fullName) data.fullName = fullName;
-  if (telefono) data.telefono = telefono;
-  if (isActive) data.isActive = isActive;
-  if (roles) data.roles = roles;
+  if (body.checked) plantilla = z.object(plantillaBase);
+  else plantilla = z.object(plantillaBase).partial();
+
+  data = plantilla.parse(body);
+
+  if (data.password) data.password = bcrypt.hashSync(data.password);
+
+  if (prisma.user.findUnique({ where: { dni: body.dni } })) {
+    data.conductor = {
+      connect: { dni },
+    };
+  }
 
   return data;
 };
 
 export const createTrayectoData = (body, method) => {
-  method = method.toLowerCase();
-  if (method != "post" && method != "patch") throw { code: 405 };
+  let plantilla;
+  const plantillaBase = {
+    horaSalida: z.date(),
+    horaLlegada: z.date(),
+    origen: z.string(),
+    destino: z.string(),
+    distanciaEnKm: z.int(),
+    viajeId: z.int(),
+  };
 
-  const data = {};
+  /*method = method.toLowerCase();
+  if (method != "post" && method != "patch") throw { code: 405 };*/
 
-  const { horaSalida, horaLlegada, origen, destino, distanciaEnKm, viajeId } =
-    body;
+  let data = {};
 
-  if (method === "patch") {
+  /*const { horaSalida, horaLlegada, origen, destino, distanciaEnKm, viajeId } =
+    body;*/
+
+  if (body.checked) plantilla = z.object(plantillaBase);
+  else plantilla = z.object(plantillaBase).partial();
+
+  data = plantilla.parse(body);
+
+  /*if (method === "patch") {
     if (lugar !== undefined) data.lugar = lugar;
     if (aprobada !== undefined) data.aprobada = aprobada;
     if (fecha !== undefined) data.fecha = new Date(fecha);
@@ -43,7 +76,7 @@ export const createTrayectoData = (body, method) => {
     data.destino = destino;
     data.distanciaEnKm = distanciaEnKm;
     data.viajeId = viajeId;
-  }
+  }*/
 
   return data;
 };
