@@ -71,9 +71,9 @@ export const createConductorData = async (body, method, existing = null) => {
     vehiculo: z.array(z.string()).optional(),
     image: z
       .object({
-        nombre: z.string(),
-        url: z.string(),
-        fromCloudinary: z.boolean(),
+        nombre: z.string().nullable(),
+        url: z.string().nullable(),
+        fromCloudinary: z.boolean().nullable(),
       })
       .nullable()
       .optional(),
