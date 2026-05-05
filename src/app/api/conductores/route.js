@@ -1,8 +1,8 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
-import { getVerifiedBody } from "@/actions";
 import { createConductorData } from "@/createEntityData";
+import { getBody } from "@/actions";
 
 export async function GET(request) {
   const offset = +request.nextUrl.searchParams.get("offset") || 0;
@@ -26,7 +26,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = await getVerifiedBody(request, "CONDUCTOR");
+    const body = await getBody(request, "CONDUCTOR");
 
     const data = await createConductorData(body, "post");
 
@@ -35,6 +35,7 @@ export async function POST(request) {
       include: {
         image: true,
         vehiculo: true,
+        user: true,
       },
     });
 

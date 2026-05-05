@@ -1,7 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
-import { getVerifiedBody, verifyUser } from "@/actions";
 import { createTrayectoData } from "@/createEntityData";
 
 export async function GET(request) {
@@ -25,7 +24,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = getVerifiedBody(request, "TRAYECTO");
+    const body = getBody(request, "TRAYECTO");
 
     const data = createTrayectoData(body, "post");
 

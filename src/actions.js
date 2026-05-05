@@ -2,12 +2,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
-import {
-  verifyConductorBody,
-  verifyVehiculoBody,
-  verifyRevisionBody,
-  verifyTrayectoBody,
-} from "./verifyEntityBody";
 
 // cloudinary.config({
 //   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -17,12 +11,10 @@ import {
 
 cloudinary.config(process.env.CLOUDINARY_URL || "");
 
-const VERIFY = {
+/*const VERIFY = {
   CONDUCTOR: verifyConductorBody,
-  VEHICULO: verifyVehiculoBody,
-  REVISION: verifyRevisionBody,
   TRAYECTO: verifyTrayectoBody,
-};
+};*/
 
 export async function uploadFile(file) {
   const fileBuffer = await file.arrayBuffer();
@@ -58,7 +50,7 @@ export async function uploadFile(file) {
     const result = await uploadToCloudinary();
     // let imageUrl = result.secure_url;
 
-    return { name: result.public_id, url: result.url, fromCloudinary: true };
+    return { nombre: result.public_id, url: result.url, fromCloudinary: true };
   } catch (error) {
     return { error: error.message };
   }
@@ -130,34 +122,11 @@ export async function getBodyFromFormData(request) {
   return body;
 }
 
-export const verifyBody = async (body, type) => {
-  try {
-    VERIFY[type](body);
-    body.checked = true;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export async function getVerifiedBody(request, type) {
-  try {
-    const body = await getBody(request, type.toUpperCase());
-
-    await verifyBody(body, type.toUpperCase());
-
-    return body;
-  } catch (error) {
-    throw error;
-  }
-}
-
-export async function getBody(request, type) {
+export async function getBodyWithoutUserVerification(request, type) {
   const contentType = request.headers.get("content-type") || "";
   let body;
 
   try {
-    await verifyUser(request.headers.get("Authorization"));
-
     if (contentType.includes("application/json"))
       body = await getBodyFromRequest(request);
 
@@ -169,6 +138,16 @@ export async function getBody(request, type) {
     normalizeBody(body, type);
 
     return body;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getBody(request, type) {
+  try {
+    await verifyUser(request.headers.get("Authorization"));
+
+    return getBodyWithoutUserVerification(request, type);
   } catch (error) {
     throw error;
   }

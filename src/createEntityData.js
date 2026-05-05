@@ -3,7 +3,7 @@ import prisma from "./lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-export const createUserData = (body) => {
+export const createUserData = async (body) => {
   let plantilla;
   const plantillaBase = {
     dni: z.string(),
@@ -18,14 +18,14 @@ export const createUserData = (body) => {
 
   const { dni } = body;
 
-  if (body.checked) plantilla = z.object(plantillaBase);
-  else plantilla = z.object(plantillaBase).partial();
+  if (method === "post") plantilla = z.object(plantillaBase);
+  if (method === "patch") plantilla = z.object(plantillaBase).partial();
 
   data = plantilla.parse(body);
 
   if (data.password) data.password = bcrypt.hashSync(data.password);
 
-  if (prisma.user.findUnique({ where: { dni: body.dni } })) {
+  if (await prisma.conductor.findUnique({ where: { dni: body.dni } })) {
     data.conductor = {
       connect: { dni },
     };
@@ -37,121 +37,84 @@ export const createUserData = (body) => {
 export const createTrayectoData = (body, method) => {
   let plantilla;
   const plantillaBase = {
-    horaSalida: z.date(),
-    horaLlegada: z.date(),
+    horaSalida: z.string(),
+    horaLlegada: z.string(),
     origen: z.string(),
     destino: z.string(),
     distanciaEnKm: z.int(),
     viajeId: z.int(),
   };
 
-  /*method = method.toLowerCase();
-  if (method != "post" && method != "patch") throw { code: 405 };*/
+  method = method.toLowerCase();
+  if (method != "post" && method != "patch") throw { code: 405 };
 
-  let data = {};
+  if (method === "post") plantilla = z.object(plantillaBase);
+  if (method === "patch") plantilla = z.object(plantillaBase).partial();
 
-  /*const { horaSalida, horaLlegada, origen, destino, distanciaEnKm, viajeId } =
-    body;*/
+  let data = plantilla.parse(body);
 
-  if (body.checked) plantilla = z.object(plantillaBase);
-  else plantilla = z.object(plantillaBase).partial();
-
-  data = plantilla.parse(body);
-
-  /*if (method === "patch") {
-    if (lugar !== undefined) data.lugar = lugar;
-    if (aprobada !== undefined) data.aprobada = aprobada;
-    if (fecha !== undefined) data.fecha = new Date(fecha);
-    if (costo !== undefined) data.costo = costo;
-    if (visible !== undefined) data.visible = visible;
-    if (vehiculoMatricula !== undefined)
-      data.vehiculoMatricula = vehiculoMatricula;
-    if (viajeId !== undefined) data.viajeId = viajeId;
-  }
-
-  if (method === "post") {
-    data.horaSalida = new Date(horaSalida);
-    data.horaLlegada = new Date(horaLlegada);
-    data.origen = origen;
-    data.destino = destino;
-    data.distanciaEnKm = distanciaEnKm;
-    data.viajeId = viajeId;
-  }*/
+  data.horaSalida = new Date(data.horaSalida);
+  data.horaLlegada = new Date(data.horaLlegada);
 
   return data;
 };
 
 export const createConductorData = async (body, method, existing = null) => {
+  let plantilla;
+  const plantillaBase = {
+    dni: z.string(),
+    nombre: z.string(),
+    apellidos: z.string(),
+    telefono: z.string(),
+    direccion: z.string(),
+    fechaNacimiento: z.string(),
+    vehiculo: z.array(z.string()).optional(),
+    image: z
+      .object({
+        nombre: z.string(),
+        url: z.string(),
+        fromCloudinary: z.boolean(),
+      })
+      .optional(),
+  };
   method = method.toLowerCase();
   if (method != "post" && method != "patch") throw { code: 405 };
 
-  const data = {};
+  if (method === "post") plantilla = z.object(plantillaBase);
+  if (method === "patch") plantilla = z.object(plantillaBase).partial();
 
-  const {
-    dni,
-    nombre,
-    apellidos,
-    telefono,
-    direccion,
-    fechaNacimiento,
-    vehiculo,
-    image,
-  } = body;
+  let data = plantilla.parse(body);
 
-  if (method === "patch") {
-    if (nombre !== undefined) data.nombre = nombre;
-    if (apellidos !== undefined) data.apellidos = apellidos;
-    if (telefono !== undefined) data.telefono = telefono;
-    if (direccion !== undefined) data.direccion = direccion;
-    if (fechaNacimiento !== undefined)
-      data.fechaNacimiento = new Date(fechaNacimiento);
-    if (image !== undefined) {
-      if (existing.image) {
-        if (existing.image.fromCloudinary)
-          await cloudinary.uploader.destroy(existing.image.nombre);
-        const id = existing.image.id;
-        await prisma.images.delete({ where: { id } });
-      }
+  if (data.fechaNacimiento)
+    data.fechaNacimiento = new Date(data.fechaNacimiento);
 
-      if (image.url !== null) {
-        data.image = {
-          create: {
-            url: image.url,
-            nombre: image.name,
-            fromCloudinary: image.fromCloudinary,
-          },
-        };
-      }
+  if (data.image) {
+    if (existing && existing.image) {
+      if (existing.image.fromCloudinary)
+        await cloudinary.uploader.destroy(existing.image.nombre);
+      const id = existing.image.id;
+      await prisma.images.delete({ where: { id } });
     }
 
-    if (vehiculo !== undefined) {
-      data.vehiculo = {
-        connect: vehiculo.map((matricula) => ({ matricula })),
+    if (data.image.url !== null) {
+      data.image = {
+        create: {
+          url: data.image.url,
+          nombre: data.image.nombre,
+          fromCloudinary: data.image.fromCloudinary,
+        },
       };
     }
   }
 
-  if (method === "post") {
-    data.dni = dni;
-    data.nombre = nombre;
-    data.apellidos = apellidos;
-    data.telefono = telefono;
-    data.direccion = direccion;
-    data.fechaNacimiento = new Date(fechaNacimiento);
-    if (image) {
-      data.image = {
-        create: {
-          url: image.url,
-          nombre: image.name,
-          fromCloudinary: image.fromCloudinary,
-        },
-      };
-    }
-    if (vehiculo && vehiculo.length) {
-      data.vehiculo = {
-        connect: vehiculo.map((matricula) => ({ matricula })),
-      };
-    }
+  if (data.vehiculo && data.vehiculo.length) {
+    data.vehiculo = {
+      connect: data.vehiculo.map((matricula) => ({ matricula })),
+    };
+  }
+
+  if (await prisma.user.findUnique({ where: { dni: data.dni } })) {
+    data.userDni = data.dni;
   }
 
   return data;
