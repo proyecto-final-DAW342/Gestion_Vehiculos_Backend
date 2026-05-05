@@ -1,4 +1,6 @@
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { ZodError } from "zod";
 //https://www.rfc-editor.org/rfc/rfc9110.html#name-status-codes
 //https://www.prisma.io/docs/orm/reference/error-reference#error-codes
 const AUTH_ERRORS = {
@@ -43,6 +45,25 @@ export async function errorHandling(err, customMessage = null) {
   if (err?.code && PRISMA_ERROR_MESSAGES[err?.code]) {
     console.error(err.message || err.code);
     return NextResponse.json({ error: message }, { status: 500 });
+  }
+
+  if (err instanceof Prisma.PrismaClientValidationError) {
+    console.log(err);
+    return NextResponse.json(
+      { error: "Revisa los datos enviados." },
+      { status: 400 },
+    );
+  }
+
+  if (err instanceof ZodError) {
+    const e = JSON.parse(err.message)[0];
+
+    return NextResponse.json(
+      {
+        error: `ERROR: Hay campos inválidos en la petición -> ${e.path}: ${e.message}`,
+      },
+      { status: 400 },
+    );
   }
 
   console.error(err);
