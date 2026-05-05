@@ -3,7 +3,7 @@ import prisma from "./lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-export const createUserData = async (body) => {
+export const createUserData = async (body, method) => {
   let plantilla;
   const plantillaBase = {
     dni: z.string(),
