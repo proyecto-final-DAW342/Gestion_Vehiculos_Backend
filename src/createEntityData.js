@@ -6,13 +6,13 @@ import { z } from "zod";
 export const createUserData = async (body, method) => {
   let plantilla;
   const plantillaBase = {
-    dni: z.string(),
-    email: z.email(),
-    password: z.string(),
-    fullName: z.string(),
-    telefono: z.int().optional(),
-    isActive: z.boolean(),
-    roles: z.array(z.string()),
+    dni: z.string().nullable(),
+    email: z.email().nullable(),
+    password: z.string().nullable(),
+    fullName: z.string().nullable(),
+    telefono: z.string().nullable(),
+    isActive: z.boolean().optional().nullable(),
+    roles: z.array(z.string()).optional(),
   };
   let data = {};
 
@@ -62,13 +62,13 @@ export const createTrayectoData = (body, method) => {
 export const createConductorData = async (body, method, existing = null) => {
   let plantilla;
   const plantillaBase = {
-    dni: z.string(),
-    nombre: z.string(),
-    apellidos: z.string(),
-    telefono: z.string(),
-    direccion: z.string(),
-    fechaNacimiento: z.string(),
-    vehiculo: z.array(z.string()).optional(),
+    dni: z.string().nullable(),
+    nombre: z.string().nullable(),
+    apellidos: z.string().nullable(),
+    telefono: z.string().nullable(),
+    direccion: z.string().nullable(),
+    fechaNacimiento: z.string().nullable(),
+    vehiculo: z.array(z.string()).nullable().optional(),
     image: z
       .object({
         nombre: z.string().nullable(),
@@ -114,8 +114,17 @@ export const createConductorData = async (body, method, existing = null) => {
     };
   }
 
-  if (await prisma.user.findUnique({ where: { dni: data.dni } })) {
+  if (
+    data.dni &&
+    (await prisma.user.findUnique({ where: { dni: data.dni } }))
+  ) {
     data.userDni = data.dni;
+  }
+
+  if (method == "patch" && data.image == null) {
+    data.image = {
+      disconnect: true,
+    };
   }
 
   return data;
