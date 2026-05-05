@@ -75,6 +75,7 @@ export const createConductorData = async (body, method, existing = null) => {
         url: z.string(),
         fromCloudinary: z.boolean(),
       })
+      .nullable()
       .optional(),
   };
   method = method.toLowerCase();
@@ -121,6 +122,8 @@ export const createConductorData = async (body, method, existing = null) => {
 };
 
 export const createRevisionData = (body, method) => {
+  let plantilla;
+  let planatillaBase = {};
   method = method.toLowerCase();
   if (method != "post" && method != "patch") throw { code: 405 };
 
