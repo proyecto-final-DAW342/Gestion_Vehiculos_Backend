@@ -1,7 +1,6 @@
 "use server";
 import { v2 as cloudinary } from "cloudinary";
-import jwt from "jsonwebtoken";
-import prisma from "@/lib/prisma";
+import { verifyUser } from "./userVerification";
 
 // cloudinary.config({
 //   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -10,11 +9,6 @@ import prisma from "@/lib/prisma";
 // });
 
 cloudinary.config(process.env.CLOUDINARY_URL || "");
-
-/*const VERIFY = {
-  CONDUCTOR: verifyConductorBody,
-  TRAYECTO: verifyTrayectoBody,
-};*/
 
 export async function uploadFile(file) {
   const fileBuffer = await file.arrayBuffer();
@@ -56,26 +50,54 @@ export async function uploadFile(file) {
   }
 }
 
-export async function verifyUser(authHeader) {
+export async function getBody(request, type) {
+  const contentType = request.headers.get("content-type") || "";
+  let body;
+
   try {
-    if (!authHeader) {
-      throw { code: 401 };
-    }
+    if (contentType.includes("application/json"))
+      body = await getBodyFromRequest(request);
 
-    const token = authHeader.split(" ")[1] || authHeader;
+    if (contentType.includes("multipart/form-data"))
+      body = await getBodyFromFormData(request);
 
-    const { dni } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { dni } });
+    body.checked = false;
 
-    if (!user) {
-      throw { code: 401 };
-    }
+    normalizeBody(body, type);
+
+    return body;
   } catch (error) {
     throw error;
   }
 }
 
-export async function getBodyFromRequest(request) {
+export async function getUserVerifiedBody(request, type) {
+  try {
+    console.log(request.nextUrl.pathname);
+    await verifyUser(request.headers.get("Authorization"));
+
+    return getBodyWithoutUserVerification(request, type);
+  } catch (error) {
+    throw error;
+  }
+}
+
+function normalizeBody(body, type) {
+  if (
+    type === "CONDUCTOR" &&
+    body.image &&
+    Array.isArray(body.image) &&
+    body.image[0]
+  ) {
+    body.image.forEach((img, i) => {
+      i && cloudinary.uploader.destroy(img.nombre);
+    });
+
+    body.image = body.image[0];
+  }
+}
+
+async function getBodyFromRequest(request) {
   const body = await request.json().catch(() => {
     throw {
       code: 400,
@@ -92,7 +114,7 @@ export async function getBodyFromRequest(request) {
   return body;
 }
 
-export async function getBodyFromFormData(request) {
+async function getBodyFromFormData(request) {
   const fileLimit = 5;
   let body = {};
   const formData = await request.formData();
@@ -120,50 +142,4 @@ export async function getBodyFromFormData(request) {
   }
 
   return body;
-}
-
-export async function getBodyWithoutUserVerification(request, type) {
-  const contentType = request.headers.get("content-type") || "";
-  let body;
-
-  try {
-    if (contentType.includes("application/json"))
-      body = await getBodyFromRequest(request);
-
-    if (contentType.includes("multipart/form-data"))
-      body = await getBodyFromFormData(request);
-
-    body.checked = false;
-
-    normalizeBody(body, type);
-
-    return body;
-  } catch (error) {
-    throw error;
-  }
-}
-
-export async function getBody(request, type) {
-  try {
-    await verifyUser(request.headers.get("Authorization"));
-
-    return getBodyWithoutUserVerification(request, type);
-  } catch (error) {
-    throw error;
-  }
-}
-
-function normalizeBody(body, type) {
-  if (
-    type === "CONDUCTOR" &&
-    body.image &&
-    Array.isArray(body.image) &&
-    body.image[0]
-  ) {
-    body.image.forEach((img, i) => {
-      i && cloudinary.uploader.destroy(img.nombre);
-    });
-
-    body.image = body.image[0];
-  }
 }

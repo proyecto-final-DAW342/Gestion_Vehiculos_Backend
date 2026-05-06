@@ -1,37 +1,11 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { verifyUserAdmin } from "@/userVerification";
+import { errorHandling } from "@/manejoStatus";
 
 export async function GET(request) {
-  const authHeader = request.headers.get("Authorization");
-
-  if (!authHeader) {
-    return NextResponse.json(
-      { error: "Unauthorized. Token expired or invalid." },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1] || authHeader;
-
   try {
-    const { dni: userDni } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { dni: userDni } });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized. Token expired or invalid." },
-        { status: 401 },
-      );
-    }
-
-    if (user.roles[0] != "admin") {
-      //Aquí debería ser isAdmin
-      return NextResponse.json(
-        { error: "No autorizado. No tienes permisos suficientes." },
-        { status: 401 },
-      );
-    }
+    await verifyUserAdmin(request.headers.get("Authorization"));
 
     const users = await prisma.user.findMany({
       include: {
@@ -40,7 +14,7 @@ export async function GET(request) {
     });
 
     if (!users) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      throw { code: 404 };
     }
 
     // Remove password from the response
@@ -48,10 +22,6 @@ export async function GET(request) {
 
     return NextResponse.json(usersWithoutPassword, { status: 200 });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }

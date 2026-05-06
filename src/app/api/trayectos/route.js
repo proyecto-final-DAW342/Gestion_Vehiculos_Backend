@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
 import { createTrayectoData } from "@/createEntityData";
+import { getUserVerifiedBody } from "@/actions";
 
 export async function GET(request) {
   const offset = +request.nextUrl.searchParams.get("offset") || 0;
@@ -24,7 +25,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = getBody(request, "TRAYECTO");
+    const body = getUserVerifiedBody(request, "TRAYECTO");
 
     const data = createTrayectoData(body, "post");
 

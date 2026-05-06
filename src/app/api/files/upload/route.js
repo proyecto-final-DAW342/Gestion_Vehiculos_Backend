@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import cloudinary from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
-import { verifyUser } from "@/actions";
+import { verifyUser } from "@/userVerification";
 import { errorHandling } from "@/manejoStatus";
 
 const FOLDER = "vehiculos";

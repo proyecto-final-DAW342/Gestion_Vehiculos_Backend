@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
-import { getBodyFromRequest, verifyUser } from "@/actions";
+import { getUserVerifiedBody } from "@/actions";
 import { createRevisionData } from "@/createEntityData";
 
 export async function GET(request) {
@@ -40,33 +40,16 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    await verifyUser(request.headers.get("Authorization"));
-
-    const body = await getBodyFromRequest(request);
-
-    if (
-      !body.fecha ||
-      !body.lugar ||
-      body.aprobada === undefined ||
-      !body.vehiculoMatricula ||
-      body.visible === undefined ||
-      body.costo === undefined
-    ) {
-      throw { code: 400 };
-    }
+    const body = await getUserVerifiedBody(request, "REVISION");
 
     const data = createRevisionData(body, "post");
 
-    if (isNaN(data.fecha.getTime())) {
-      throw {
-        code: 400,
-        customMessage:
-          "La fecha es inválida. El formato esperado es AAAA-MM-DD",
-      };
-    }
-
     const revision = await prisma.revision.create({
       data,
+      include: {
+        vehiculo: true,
+        viaje: true,
+      },
     });
 
     return NextResponse.json(revision, { status: 201 });

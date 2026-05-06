@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyUser } from "@/actions";
+import { verifyUser } from "@/userVerification";
 import { errorHandling } from "@/manejoStatus";
 
 export async function GET(request) {

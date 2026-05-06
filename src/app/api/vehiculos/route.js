@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { getBodyFromRequest, verifyUser } from "@/actions";
+import { getUserVerifiedBody } from "@/actions";
 import { errorHandling } from "@/manejoStatus";
 import { createVehiculoData } from "@/createEntityData";
 
@@ -28,9 +28,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    await verifyUser(request.headers.get("Authorization"));
-
-    const body = await getBodyFromRequest(request);
+    const body = await getUserVerifiedBody(request, "VEHICULO");
 
     if (
       !body.matricula ||

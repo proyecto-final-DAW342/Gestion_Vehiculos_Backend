@@ -1,4 +1,4 @@
-import { getBody } from "@/actions";
+import { verifyUserAdminOrSameDni } from "@/userVerification";
 import { createUserData } from "@/createEntityData";
 import prisma from "@/lib/prisma";
 import { errorHandling } from "@/manejoStatus";
@@ -8,12 +8,14 @@ export async function GET(request, { params }) {
   const { dni } = await params;
 
   try {
+    await verifyUserAdminOrSameDni(request.headers.get("Authorization"), dni);
+
     const user = await prisma.user.findUnique({
       where: { dni },
     });
 
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      throw { code: 404 };
     }
 
     // Remove password from the response
@@ -21,11 +23,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(userWithoutPassword, { status: 200 });
   } catch (error) {
-    console.error("Error fetching user by DNI:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }
 
@@ -33,9 +31,11 @@ export async function PATCH(request, { params }) {
   const { dni } = await params;
 
   try {
-    const body = await getBody(request, "USER");
+    await verifyUserAdminOrSameDni(request.headers.get("Authorization"), dni);
 
-    const data = createUserData(body);
+    const body = await getUserVerifiedBody(request, "USER");
+
+    const data = createUserData(body, "patch");
 
     const updatedConductor = await prisma.user.update({
       where: { dni },

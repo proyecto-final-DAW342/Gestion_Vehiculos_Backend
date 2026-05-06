@@ -3,9 +3,8 @@ import prisma from "./lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-export const createUserData = async (body, method) => {
-  let plantilla;
-  const plantillaBase = {
+const plantillaBase = {
+  PLANTILLA_USUARIO: {
     dni: z.string().nullable(),
     email: z.email().nullable(),
     password: z.string().nullable(),
@@ -13,55 +12,18 @@ export const createUserData = async (body, method) => {
     telefono: z.string().nullable(),
     isActive: z.boolean().optional().nullable(),
     roles: z.array(z.string()).optional(),
-  };
-  let data = {};
+  },
 
-  const { dni } = body;
-
-  if (method === "post") plantilla = z.object(plantillaBase);
-  if (method === "patch") plantilla = z.object(plantillaBase).partial();
-
-  data = plantilla.parse(body);
-
-  if (data.password) data.password = bcrypt.hashSync(data.password);
-
-  if (await prisma.conductor.findUnique({ where: { dni: body.dni } })) {
-    data.conductor = {
-      connect: { dni },
-    };
-  }
-
-  return data;
-};
-
-export const createTrayectoData = (body, method) => {
-  let plantilla;
-  const plantillaBase = {
+  PLANTILLA_TRAYECTO: {
     horaSalida: z.string(),
     horaLlegada: z.string(),
     origen: z.string(),
     destino: z.string(),
     distanciaEnKm: z.int(),
-    viajeId: z.int(),
-  };
+    viajeId: z.string(),
+  },
 
-  method = method.toLowerCase();
-  if (method != "post" && method != "patch") throw { code: 405 };
-
-  if (method === "post") plantilla = z.object(plantillaBase);
-  if (method === "patch") plantilla = z.object(plantillaBase).partial();
-
-  let data = plantilla.parse(body);
-
-  data.horaSalida = new Date(data.horaSalida);
-  data.horaLlegada = new Date(data.horaLlegada);
-
-  return data;
-};
-
-export const createConductorData = async (body, method, existing = null) => {
-  let plantilla;
-  const plantillaBase = {
+  PLANTILLA_CONDUCTOR: {
     dni: z.string().nullable(),
     nombre: z.string().nullable(),
     apellidos: z.string().nullable(),
@@ -77,14 +39,76 @@ export const createConductorData = async (body, method, existing = null) => {
       })
       .nullable()
       .optional(),
-  };
+  },
+
+  PLANTILLA_REVISION: {
+    lugar: z.string().nullable(),
+    aprobada: z.boolean().nullable(),
+    fecha: z.string().nullable(),
+    costo: z.float32().nullable(),
+    visible: z.boolean().nullable(),
+    vehiculoMatricula: z.string().nullable().optional(),
+    viajeId: z.string().nullable().optional(),
+  },
+
+  PLANTILLA_VEHICULO: {
+    matricula: z.string().nullable(),
+    marca: z.string().nullable(),
+    modelo: z.string().nullable(),
+    fechaCompra: z.string().nullable(),
+    anyosAntiguedad: z.int().nullable(),
+    tipo: z.string().nullable(),
+    kilometrosTotales: z.float64().nullable(),
+    alimentacion: z.string().nullable(),
+    precio: z.float64().nullable(),
+    gastoPorKm: z.float64().nullable(),
+    conductorDni: z.string().nullable().optional(),
+    imagenes: z.array(z.string()).nullable().optional(),
+    revisiones: z.array(z.string()).nullable().optional(),
+    averias: z.array(z.string()).nullable().optional(),
+    viajes: z.array(z.string()).nullable().optional(),
+  },
+};
+
+const createDataFromPlantilla = (tipo, body, method) => {
   method = method.toLowerCase();
   if (method != "post" && method != "patch") throw { code: 405 };
 
-  if (method === "post") plantilla = z.object(plantillaBase);
-  if (method === "patch") plantilla = z.object(plantillaBase).partial();
+  const plantilla =
+    method === "post"
+      ? z.object(plantillaBase[tipo])
+      : z.object(plantillaBase[tipo]).partial();
 
-  let data = plantilla.parse(body);
+  return plantilla.parse(body);
+};
+
+export const createUserData = async (body, method) => {
+  const { dni } = body;
+
+  let data = createDataFromPlantilla("PLANTILLA_USUARIO", body, method);
+
+  if (data.password) data.password = bcrypt.hashSync(data.password);
+
+  if (await prisma.conductor.findUnique({ where: { dni: body.dni } })) {
+    data.conductor = {
+      connect: { dni },
+    };
+  }
+
+  return data;
+};
+
+export const createTrayectoData = (body, method) => {
+  let data = createDataFromPlantilla("PLANTILLA_TRAYECTO", body, method);
+
+  if (data.horaSalida) data.horaSalida = new Date(data.horaSalida);
+  if (data.horaLlegada) data.horaLlegada = new Date(data.horaLlegada);
+
+  return data;
+};
+
+export const createConductorData = async (body, method, existing = null) => {
+  let data = createDataFromPlantilla("PLANTILLA_CONDUCTOR", body, method);
 
   if (data.fechaNacimiento)
     data.fechaNacimiento = new Date(data.fechaNacimiento);
@@ -131,89 +155,40 @@ export const createConductorData = async (body, method, existing = null) => {
 };
 
 export const createRevisionData = (body, method) => {
-  let plantilla;
-  let planatillaBase = {};
-  method = method.toLowerCase();
-  if (method != "post" && method != "patch") throw { code: 405 };
+  let data = createDataFromPlantilla("PLANTILLA_REVISION", body, method);
 
-  const data = {};
-
-  const { fecha, lugar, aprobada, costo, visible, vehiculoMatricula, viajeId } =
-    body;
-
-  if (method === "patch") {
-    if (lugar !== undefined) data.lugar = lugar;
-    if (aprobada !== undefined) data.aprobada = aprobada;
-    if (fecha !== undefined) data.fecha = new Date(fecha);
-    if (costo !== undefined) data.costo = costo;
-    if (visible !== undefined) data.visible = visible;
-    if (vehiculoMatricula !== undefined)
-      data.vehiculoMatricula = vehiculoMatricula;
-    if (viajeId !== undefined) data.viajeId = viajeId;
-  }
-
-  if (method === "post") {
-    data.fecha = new Date(fecha);
-    data.lugar = lugar;
-    data.aprobada = aprobada;
-    data.costo = costo;
-    data.visible = visible;
-    data.vehiculoMatricula = vehiculoMatricula;
-    data.viajeId = viajeId;
-  }
+  if (data.fecha) data.fecha = new Date(data.fecha);
 
   return data;
 };
 
 export const createVehiculoData = (body, method) => {
-  method = method.toLowerCase();
-  if (method != "post" && method != "patch") throw { code: 405 };
+  let data = createDataFromPlantilla("PLANTILLA_VEHICULO", body, method);
 
-  const data = {};
+  if (data.fechaCompra) data.fechaCompra = new Date(data.fechaCompra);
 
-  if (method === "patch") {
-    if (body.marca !== undefined) data.marca = body.marca;
-    if (body.modelo !== undefined) data.modelo = body.modelo;
-    if (body.fechaCompra !== undefined)
-      data.fechaCompra = new Date(body.fechaCompra);
-    if (body.anyosAntiguedad !== undefined)
-      data.anyosAntiguedad = body.anyosAntiguedad;
-    if (body.tipo !== undefined) data.tipo = body.tipo;
-    if (body.kilometrosTotales !== undefined)
-      data.kilometrosTotales = body.kilometrosTotales;
-    if (body.alimentacion !== undefined) data.alimentacion = body.alimentacion;
-    if (body.precio !== undefined) data.precio = body.precio;
-    if (body.gastoPorKm !== undefined) data.gastoPorKm = body.gastoPorKm;
-    if (body.conductorDni !== undefined) data.conductorDni = body.conductorDni;
-    //Faltan las revisiones y las averías
-    if (body.imagenes !== undefined) {
-      data.imagenes = {
-        connectOrCreate: body.imagenes.map(({ id, url, nombre }) => ({
-          where: { id },
-          create: { id, url, nombre },
-        })),
-      };
-    }
+  if (data.imagenes && data.imagenes.length) {
+    data.imagenes = {
+      connect: data.imagenes.map(({ id }) => ({ id })),
+    };
   }
 
-  if (method === "post") {
-    data.matricula = body.matricula;
-    data.marca = body.marca;
-    data.modelo = body.modelo;
-    data.fechaCompra = new Date(body.fechaCompra);
-    data.anyosAntiguedad = body.anyosAntiguedad;
-    data.tipo = body.tipo;
-    data.kilometrosTotales = body.kilometrosTotales;
-    data.alimentacion = body.alimentacion;
-    data.precio = body.precio || 0;
-    data.gastoPorKm = body.gastoPorKm;
+  if (data.revisiones && data.revisiones.length) {
+    data.revisiones = {
+      connect: data.revisiones.map(({ id }) => ({ id })),
+    };
+  }
 
-    if (body.conductorDni) data.conductorDni = bodyconductorDni;
-    if (body.imagenes && body.imagenes.length) {
-      data.imagenes = {
-        connect: body.imagenes.map(({ id }) => ({ id })),
-      };
-    }
+  if (data.averias && data.averias.length) {
+    data.averias = {
+      connect: data.averias.map(({ id }) => ({ id })),
+    };
+  }
+
+  if (data.viajes && data.viajes.length) {
+    data.viajes = {
+      connect: data.viajes.map(({ id }) => ({ id })),
+    };
   }
 
   return data;

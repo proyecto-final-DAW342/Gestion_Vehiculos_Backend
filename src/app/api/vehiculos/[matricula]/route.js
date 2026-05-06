@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
-import { getBodyFromRequest, verifyUser } from "@/actions";
+import { verifyUser } from "@/userVerification";
 import { createVehiculoData } from "@/createEntityData";
 
 export async function GET(request, { params }) {
@@ -32,14 +32,12 @@ export async function PATCH(request, { params }) {
   const { matricula } = await params;
 
   try {
-    await verifyUser(request.headers.get("Authorization"));
-
     const existing = await prisma.vehiculo.findUnique({ where: { matricula } });
     if (!existing) {
       throw { code: 404 };
     }
 
-    const body = await getBodyFromRequest(request);
+    const body = await getUserVerifiedBody(request, "VEHICULO");
     const data = createVehiculoData(body, "patch");
 
     const updated = await prisma.vehiculo.update({

@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { getBody, verifyUser } from "@/actions";
+import { getUserVerifiedBody } from "@/actions";
+import { verifyUser } from "@/userVerification";
 import { errorHandling } from "@/manejoStatus";
 import { createConductorData } from "@/createEntityData";
 
@@ -36,8 +37,6 @@ export async function PATCH(request, { params }) {
   const { dni } = await params;
 
   try {
-    await verifyUser(request.headers.get("Authorization"));
-
     const existing = await prisma.conductor.findUnique({
       where: { dni },
       include: { image: true },
@@ -46,7 +45,7 @@ export async function PATCH(request, { params }) {
       throw { code: 404 };
     }
 
-    const body = await getBody(request, "CONDUCTOR");
+    const body = await getUserVerifiedBody(request, "CONDUCTOR");
 
     const data = await createConductorData(body, "patch", existing);
 
