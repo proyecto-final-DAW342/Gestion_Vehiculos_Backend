@@ -38,14 +38,13 @@ model Conductor {
 }
 
 model Trayecto {
-  id            Int      @id
+  id            String   @id @default(uuid())
   horaSalida    DateTime
   horaLlegada   DateTime
   origen        String
   destino       String
   distanciaEnKm Float
   completado    Boolean //Esto tal vez no sea necesario
-  gasto         Float
 
   viajeId String?
   viaje   Viaje?  @relation(fields: [viajeId], references: [id], onDelete: Cascade)
@@ -53,10 +52,14 @@ model Trayecto {
 
 //Aunque no salga en la base de datos. Al devolver el json de un Viaje puedo añadir el campo gasto sumando el gasto de todos sus trayectos
 model Viaje {
-  id        String  @id @default(uuid())
-  kmSalida  Float
-  kmLlegada Float
-  visible   Boolean
+  id                String  @id @default(uuid())
+  kmSalida          Float?
+  kmLlegada         Float?
+  origen            String
+  destino           String
+  combustibleInicio Float?
+  combustibleFinal  Float?
+  visible           Boolean
 
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
@@ -76,7 +79,6 @@ model Vehiculo {
   kilometrosTotales Float
   alimentacion      String
   precio            Float    @default(0)
-  gastoPorKm        Float
 
   conductorDni String?
   conductor    Conductor? @relation(fields: [conductorDni], references: [dni], onDelete: SetNull)

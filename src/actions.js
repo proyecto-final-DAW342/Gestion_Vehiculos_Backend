@@ -71,12 +71,11 @@ export async function getBody(request, type) {
   }
 }
 
-export async function getUserVerifiedBody(request, type) {
+export async function getUserVerifiedBody(request, type, params = {}) {
   try {
-    console.log(request.nextUrl.pathname);
-    await verifyUser(request.headers.get("Authorization"));
+    await verifyUser(request, params);
 
-    return getBodyWithoutUserVerification(request, type);
+    return getBody(request, type);
   } catch (error) {
     throw error;
   }

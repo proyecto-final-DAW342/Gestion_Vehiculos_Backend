@@ -1,6 +1,14 @@
 import jwt from "jsonwebtoken";
 
-const proteccion = {
+const PROTECCION_DEFAULT = 1;
+
+const proteccionPorMetodo = {
+  PATCH: 1,
+  POST: 1,
+  GET: 0,
+};
+
+const proteccionPorRuta = {
   DEFAULT: 1,
   "/api/auth/register": 0,
   "/api/users": 1,
@@ -13,39 +21,49 @@ const nivelProteccion = [
   verifyUserAdmin,
 ];
 
-/*export async function verifyUser(request, dni = null) {
+export async function verifyUser(request, params = {}) {
   try {
-    nivel = proteccion[request.url] || proteccion["DEFAULT"]
-    if (!nivel) return
+    const authHeader = request.headers.get("Authorization");
+
+    let ruta = request.url;
+
+    try {
+      // Intentamos parsear la URL para quedarnos con el pathname (sin query ni host)
+      ruta = new URL(request.url).pathname;
+    } catch (e) {
+      // Ignorar si no es una URL absoluta válida
+    }
+
+    if (Object.keys(params).length > 0) {
+      // Quito la última parte de la ruta asumiendo que es un parámetro de ruta
+      const parts = ruta.split("/");
+      parts.pop();
+      ruta = parts.join("/");
+    }
+
+    const nivel =
+      proteccionPorRuta[ruta] ??
+      proteccionPorMetodo[request.method] ??
+      PROTECCION_DEFAULT;
+
+    if (!nivel || nivel === 0) return null;
+
+    let user;
+
     if (nivel === 2) {
-        if (!dni) throw {code: 401}
+      // Dependiendo de tu lógica, el DNI puede venir en params
+      const dni = params.dni;
+      if (!dni)
+        throw {
+          code: 401,
+          customMessage: "Se requiere DNI para esta validación",
+        };
 
-        nivelProteccion[nivel](request.headers.get("Authorization"), dni)
-        return user;
-    }
-    
-    nivelProteccion[nivel](request.headers.get("Authorization"))
-    return user;
-  } catch (error) {
-    throw error;
-  }
-}*/
-
-export async function verifyUser(authHeader) {
-  try {
-    if (!authHeader) {
-      throw { code: 401 };
+      user = await nivelProteccion[nivel](authHeader, dni);
+      return user;
     }
 
-    const token = authHeader.split(" ")[1] || authHeader;
-
-    const { dni } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { dni } });
-
-    if (!user) {
-      throw { code: 401 };
-    }
-
+    user = await nivelProteccion[nivel](authHeader);
     return user;
   } catch (error) {
     throw error;
@@ -75,7 +93,7 @@ export async function verifyUserLogged(authHeader) {
 
 export async function verifyUserAdmin(authHeader) {
   try {
-    const user = await verifyUser(authHeader);
+    const user = await verifyUserLogged(authHeader);
 
     if (!user.roles.includes("admin")) {
       throw {
@@ -92,7 +110,7 @@ export async function verifyUserAdmin(authHeader) {
 
 export async function verifyUserAdminOrSameDni(authHeader, dni) {
   try {
-    let user = await verifyUser(authHeader);
+    let user = await verifyUserLogged(authHeader);
     if (user.dni !== dni && !user.roles.includes("admin")) {
       throw {
         code: 403,

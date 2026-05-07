@@ -1,50 +1,46 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import { verifyUser } from "@/userVerification";
 import { errorHandling } from "@/manejoStatus";
-
-
+import { getUserVerifiedBody } from "@/actions";
+import { createViajeData } from "@/createEntityData";
 
 export async function GET(request) {
-    const offset = +request.nextUrl.searchParams.get("offset") || 0;
-    const limit = +request.nextUrl.searchParams.get("limit") || 10;
+  const offset = +request.nextUrl.searchParams.get("offset") || 0;
+  const limit = +request.nextUrl.searchParams.get("limit") || 10;
 
-    try {
-        const viajes = await prisma.viaje.findMany({
-            take: limit,
-            skip: offset,
-            include: {
-                trayectos: true,
-            },
-        });
+  try {
+    const viajes = await prisma.viaje.findMany({
+      take: limit,
+      skip: offset,
+      include: {
+        trayectos: true,
+      },
+    });
 
-        return NextResponse.json(viajes, { status: 200 });
-    } catch (error) {
-        return errorHandling(error);
-    }
+    return NextResponse.json(viajes, { status: 200 });
+  } catch (error) {
+    return errorHandling(error);
+  }
 }
 
 export async function POST(request) {
+  try {
+    let body = await getUserVerifiedBody(request, "VIAJE");
 
-    try {
-        await verifyUser(request.headers.get("Authorization"));
-        const { id } = await request.json();
+    let data = createViajeData(body, "post");
 
-        if (id === undefined) {
-            return NextResponse.json(
-                { error: "Missing data" },
-                { status: 400 }
-            );
-        }
+    const viaje = await prisma.viaje.create({
+      data,
+      include: {
+        vehiculo: true,
+        revision: true,
+        trayectos: true,
+      },
+    });
 
-        const viaje = await prisma.viaje.create({
-            data: { id },
-            include: { trayectos: true },
-        });
-
-        return NextResponse.json(viaje, { status: 201 });
-    } catch (error) {
-        return errorHandling(error);
-    }
+    return NextResponse.json(viaje, { status: 201 });
+  } catch (error) {
+    return errorHandling(error);
+  }
 }

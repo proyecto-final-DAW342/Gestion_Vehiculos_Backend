@@ -61,12 +61,24 @@ const plantillaBase = {
     kilometrosTotales: z.float64().nullable(),
     alimentacion: z.string().nullable(),
     precio: z.float64().nullable(),
-    gastoPorKm: z.float64().nullable(),
     conductorDni: z.string().nullable().optional(),
     imagenes: z.array(z.string()).nullable().optional(),
     revisiones: z.array(z.string()).nullable().optional(),
     averias: z.array(z.string()).nullable().optional(),
     viajes: z.array(z.string()).nullable().optional(),
+  },
+
+  PLANTILLA_VIAJE: {
+    kmSalida: z.float64().nullable().optional(),
+    kmLlegada: z.float64().nullable().optional(),
+    origen: z.string().nullable(),
+    destino: z.string().nullable(),
+    comobustibleInicio: z.float64().nullable().optional(),
+    combustibleFinal: z.float64().nullable().optional(),
+    visible: z.boolean().nullable(),
+    vehiculoMatricula: z.string().nullable().optional(),
+    revisionId: z.string().nullable().optional(),
+    trayectos: z.array(z.string()).nullable().optional(),
   },
 };
 
@@ -173,6 +185,8 @@ export const createVehiculoData = (body, method) => {
     };
   }
 
+  console.log(data.imagenes);
+
   if (data.revisiones && data.revisiones.length) {
     data.revisiones = {
       connect: data.revisiones.map(({ id }) => ({ id })),
@@ -190,6 +204,20 @@ export const createVehiculoData = (body, method) => {
       connect: data.viajes.map(({ id }) => ({ id })),
     };
   }
+
+  return data;
+};
+
+export const createViajeData = (body, method) => {
+  let data = createDataFromPlantilla("PLANTILLA_VIAJE", body, method);
+
+  if (data.revisionId) {
+    const revisionId = data.revisionId;
+    data.revision = {
+      connect: { revisionId },
+    };
+  }
+  delete data.revisionId;
 
   return data;
 };
