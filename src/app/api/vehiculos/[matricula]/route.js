@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
 import { verifyUser } from "@/userVerification";
 import { createVehiculoData } from "@/createEntityData";
+import { getUserVerifiedBody } from "@/actions";
 
 export async function GET(request, { params }) {
   const { matricula } = await params;
