@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { verifyUser } from "@/userVerification";
 import { errorHandling } from "@/manejoStatus";
 import { getUserVerifiedBody } from "@/actions";
 import { createViajeData } from "@/createEntityData";
