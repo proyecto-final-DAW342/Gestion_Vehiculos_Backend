@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { errorHandling } from "@/manejoStatus";
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -34,7 +35,7 @@ export async function PATCH(request, { params }) {
   const { id } = await params;
 
   try {
-    const existing = await prisma.viaje.findUnique({ where: { matricula } });
+    const existing = await prisma.viaje.findUnique({ where: { id } });
     if (!existing) {
       throw { code: 404 };
     }
