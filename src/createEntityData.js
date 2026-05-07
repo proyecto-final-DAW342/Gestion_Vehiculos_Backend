@@ -224,6 +224,11 @@ export const createVehiculoData = (body, method) => {
 export const createViajeData = (body, method) => {
   let data = createDataFromPlantilla("PLANTILLA_VIAJE", body, method);
 
+  data.trayectos.forEach((t) => {
+    t.horaSalida = new Date(t.horaSalida);
+    t.horaLlegada = new Date(t.horaLlegada);
+  });
+
   if (data.revisionId) {
     const revisionId = data.revisionId;
     data.revision = {
@@ -236,14 +241,7 @@ export const createViajeData = (body, method) => {
     data.trayectos = {
       //connect: data.trayectos.map(({ id }) => ({ id })),
       create: data.trayectos.map(
-        ({
-          horaSalida,
-          horaLlegada,
-          origen,
-          destino,
-          distanciaEnKm,
-          viajeId,
-        }) => ({
+        ({ horaSalida, horaLlegada, origen, destino, distanciaEnKm }) => ({
           horaSalida,
           horaLlegada,
           origen,
@@ -251,9 +249,6 @@ export const createViajeData = (body, method) => {
           distanciaEnKm,
         }),
       ),
-      /*url: data.image.url,
-        nombre: data.image.nombre,
-        fromCloudinary: data.image.fromCloudinary,*/
     };
   }
   return data;
