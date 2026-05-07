@@ -219,5 +219,10 @@ export const createViajeData = (body, method) => {
   }
   delete data.revisionId;
 
+  if (data.trayectos) {
+    data.trayectos = {
+      connect: data.trayectos.map(({ id }) => ({ id })),
+    };
+  }
   return data;
 };
