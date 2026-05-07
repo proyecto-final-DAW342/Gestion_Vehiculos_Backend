@@ -1,6 +1,8 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { verifyUser } from "@/userVerification";
+import { errorHandling } from "@/manejoStatus";
 
 
 
@@ -19,39 +21,14 @@ export async function GET(request) {
 
         return NextResponse.json(viajes, { status: 200 });
     } catch (error) {
-        console.log(error);
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        );
+        return errorHandling(error);
     }
 }
 
-
-
 export async function POST(request) {
-    const authHeader = request.headers.get("Authorization");
-
-    if (!authHeader) {
-        return NextResponse.json(
-            { error: "Unauthorized. Token expired or invalid." },
-            { status: 401 }
-        );
-    }
-
-    const token = authHeader.split(' ')[1] || authHeader;
 
     try {
-        const { id: userId } = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-
-        if (!user) {
-            return NextResponse.json(
-                { error: "Unauthorized. Token expired or invalid." },
-                { status: 401 }
-            );
-        }
-
+        await verifyUser(request.headers.get("Authorization"));
         const { id } = await request.json();
 
         if (id === undefined) {
@@ -68,16 +45,6 @@ export async function POST(request) {
 
         return NextResponse.json(viaje, { status: 201 });
     } catch (error) {
-        console.log(error);
-        if (error.code === 'P2002') {
-            return NextResponse.json(
-                { error: "Ya existe un viaje con ese ID" },
-                { status: 409 }
-            );
-        }
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        );
+        return errorHandling(error);
     }
 }
