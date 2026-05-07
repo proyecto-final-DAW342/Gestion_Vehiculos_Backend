@@ -13,6 +13,9 @@ export async function GET(request) {
       take: limit,
       skip: offset,
       include: {
+        vehiculo: true,
+        conductor: true,
+        revision: true,
         trayectos: true,
       },
     });
@@ -33,6 +36,7 @@ export async function POST(request) {
       data,
       include: {
         vehiculo: true,
+        conductor: true,
         revision: true,
         trayectos: true,
       },
