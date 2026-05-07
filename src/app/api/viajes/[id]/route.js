@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { errorHandling } from "@/manejoStatus";
 import { getUserVerifiedBody } from "@/actions";
+import { createViajeData } from "@/createEntityData";
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -42,10 +43,10 @@ export async function PATCH(request, { params }) {
     }
 
     const body = await getUserVerifiedBody(request, "VEHICULO");
-    const data = createVehiculoData(body, "patch");
+    const data = createViajeData(body, "patch");
 
     const updated = await prisma.vehiculo.update({
-      where: { matricula },
+      where: { id },
       data,
       include: {
         vehiculo: true,
