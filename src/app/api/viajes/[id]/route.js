@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { errorHandling } from "@/manejoStatus";
+import { getUserVerifiedBody } from "@/actions";
 
 export async function GET(request, { params }) {
   const { id } = await params;
