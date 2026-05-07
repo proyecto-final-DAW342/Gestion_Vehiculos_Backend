@@ -80,7 +80,7 @@ const plantillaBase = {
     vehiculoMatricula: z.string().nullable().optional(),
     conductorDni: z.string().nullable().optional(),
     revisionId: z.string().nullable().optional(),
-    trayectos: z.array(z.string()).nullable().optional(),
+    trayectos: z.array(z.object(PLANTILLA_TRAYECTO)).nullable().optional(),
   },
 };
 
