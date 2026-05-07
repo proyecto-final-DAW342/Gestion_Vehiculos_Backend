@@ -42,10 +42,10 @@ export async function PATCH(request, { params }) {
       throw { code: 404 };
     }
 
-    const body = await getUserVerifiedBody(request, "VEHICULO");
+    const body = await getUserVerifiedBody(request, "VIAJE");
     const data = createViajeData(body, "patch");
 
-    const updated = await prisma.vehiculo.update({
+    const updated = await prisma.viaje.update({
       where: { id },
       data,
       include: {
