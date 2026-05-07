@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import prisma from "@/lib/prisma";
 
 const PROTECCION_DEFAULT = 1;
 
