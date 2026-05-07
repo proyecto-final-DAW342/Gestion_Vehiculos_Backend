@@ -69,6 +69,7 @@ const plantillaBase = {
   },
 
   PLANTILLA_VIAJE: {
+    descripcion: z.string().nullable(),
     kmSalida: z.float64().nullable().optional(),
     kmLlegada: z.float64().nullable().optional(),
     origen: z.string().nullable(),
@@ -77,6 +78,7 @@ const plantillaBase = {
     combustibleFinal: z.float64().nullable().optional(),
     visible: z.boolean().nullable(),
     vehiculoMatricula: z.string().nullable().optional(),
+    conductorDni: z.string().nullable().optional(),
     revisionId: z.string().nullable().optional(),
     trayectos: z.array(z.string()).nullable().optional(),
   },

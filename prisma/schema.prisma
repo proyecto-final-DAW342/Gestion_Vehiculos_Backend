@@ -35,6 +35,7 @@ model Conductor {
 
   userDni String? @unique
   user    User?   @relation(fields: [userDni], references: [dni])
+  viajes  Viaje[]
 }
 
 model Trayecto {
@@ -53,6 +54,7 @@ model Trayecto {
 //Aunque no salga en la base de datos. Al devolver el json de un Viaje puedo añadir el campo gasto sumando el gasto de todos sus trayectos
 model Viaje {
   id                String  @id @default(uuid())
+  descripcion       String
   kmSalida          Float?
   kmLlegada         Float?
   origen            String
@@ -63,6 +65,9 @@ model Viaje {
 
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
+
+  conductorDni String?
+  conductor    Conductor? @relation(fields: [conductorDni], references: [dni], onDelete: SetNull)
 
   revision  Revision?
   trayectos Trayecto[]
