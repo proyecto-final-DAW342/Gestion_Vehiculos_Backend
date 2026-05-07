@@ -45,7 +45,6 @@ model Trayecto {
   origen        String
   destino       String
   distanciaEnKm Float
-  completado    Boolean //Esto tal vez no sea necesario
 
   viajeId String?
   viaje   Viaje?  @relation(fields: [viajeId], references: [id], onDelete: Cascade)

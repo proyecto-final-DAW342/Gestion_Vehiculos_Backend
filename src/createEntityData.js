@@ -20,7 +20,7 @@ const plantillaBase = {
     origen: z.string(),
     destino: z.string(),
     distanciaEnKm: z.int(),
-    viajeId: z.string(),
+    viajeId: z.string().optional(),
   },
 
   PLANTILLA_CONDUCTOR: {
@@ -80,7 +80,18 @@ const plantillaBase = {
     vehiculoMatricula: z.string().nullable().optional(),
     conductorDni: z.string().nullable().optional(),
     revisionId: z.string().nullable().optional(),
-    trayectos: z.array(z.object(PLANTILLA_TRAYECTO)).nullable().optional(),
+    trayectos: z
+      .array(
+        z.object({
+          horaSalida: z.string(),
+          horaLlegada: z.string(),
+          origen: z.string(),
+          destino: z.string(),
+          distanciaEnKm: z.int(),
+        }),
+      )
+      .nullable()
+      .optional(),
   },
 };
 
@@ -223,7 +234,26 @@ export const createViajeData = (body, method) => {
 
   if (data.trayectos) {
     data.trayectos = {
-      connect: data.trayectos.map(({ id }) => ({ id })),
+      //connect: data.trayectos.map(({ id }) => ({ id })),
+      create: data.trayectos.map(
+        ({
+          horaSalida,
+          horaLlegada,
+          origen,
+          destino,
+          distanciaEnKm,
+          viajeId,
+        }) => ({
+          horaSalida,
+          horaLlegada,
+          origen,
+          destino,
+          distanciaEnKm,
+        }),
+      ),
+      /*url: data.image.url,
+        nombre: data.image.nombre,
+        fromCloudinary: data.image.fromCloudinary,*/
     };
   }
   return data;
