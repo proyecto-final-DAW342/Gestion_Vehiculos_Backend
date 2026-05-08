@@ -93,6 +93,17 @@ const plantillaBase = {
       .nullable()
       .optional(),
   },
+
+  PLANTILLA_AVERIA: {
+    descripcion: z.string().nullable(),
+    fechaAveria: z.string().nullable(),
+    fechaComienzoReparacion: z.string().nullable().optional(),
+    fechaFinReparacion: z.string().nullable().optional(),
+    lugarReparacion: z.string().nullable().optional(),
+    costeReparacion: z.float64().nullable().optional(),
+    vehiculoMatricula: z.string().nullable(),
+    userDni: z.string().nullable(),
+  },
 };
 
 const createDataFromPlantilla = (tipo, body, method) => {
@@ -251,5 +262,17 @@ export const createViajeData = (body, method) => {
       })),
     };
   }
+  return data;
+};
+
+export const createAveriaData = (body, method) => {
+  let data = createDataFromPlantilla("PLANTILLA_AVERIA", body, method);
+
+  if (data.fechaAveria) data.fechaAveria = new Date(data.fechaAveria);
+  if (data.fechaComienzoReparacion)
+    data.fechaComienzoReparacion = new Date(data.fechaComienzoReparacion);
+  if (data.fechaFinReparacion)
+    data.fechaFinReparacion = new Date(data.fechaFinReparacion);
+
   return data;
 };
