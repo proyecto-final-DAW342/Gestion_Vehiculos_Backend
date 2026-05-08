@@ -225,8 +225,8 @@ export const createViajeData = (body, method) => {
   let data = createDataFromPlantilla("PLANTILLA_VIAJE", body, method);
 
   data.trayectos.forEach((t) => {
-    t.horaSalida = new Date(t.horaSalida);
-    t.horaLlegada = new Date(t.horaLlegada);
+    if (t.horaSalida) t.horaSalida = new Date(t.horaSalida);
+    if (t.horaLlegada) t.horaLlegada = new Date(t.horaLlegada);
   });
 
   if (data.revisionId) {
