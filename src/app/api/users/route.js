@@ -9,6 +9,7 @@ export async function GET(request) {
 
     const users = await prisma.user.findMany({
       include: {
+        averias: true,
         conductor: true,
       },
     });

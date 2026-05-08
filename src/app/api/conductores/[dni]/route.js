@@ -12,7 +12,10 @@ export async function GET(request, { params }) {
     const conductor = await prisma.conductor.findUnique({
       where: { dni },
       include: {
+        image: true,
         vehiculo: true,
+        user: true,
+        viajes: true,
       },
     });
 
@@ -55,6 +58,8 @@ export async function PATCH(request, { params }) {
       include: {
         image: true,
         vehiculo: true,
+        user: true,
+        viajes: true,
       },
     });
 

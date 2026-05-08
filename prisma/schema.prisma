@@ -17,6 +17,7 @@ model User {
   roles    String[] @default(["user"])
 
   conductor Conductor?
+  averias   Averia[]
 
   @@map("users")
 }
@@ -123,10 +124,11 @@ model Averia {
   lugarReparacion         String?
   costeReparacion         Float?
 
-  vehiculoMatricula String?
-  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
+  vehiculoMatricula String
+  vehiculo          Vehiculo @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
 
-  //Poner dni
+  userDni String
+  user    User   @relation(fields: [userDni], references: [dni], onDelete: SetNull)
 }
 
 //Cambiar Images a Image cuando no haya datos

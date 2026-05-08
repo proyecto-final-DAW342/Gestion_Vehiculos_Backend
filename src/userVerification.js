@@ -12,6 +12,7 @@ const proteccionPorMetodo = {
 
 const proteccionPorRuta = {
   DEFAULT: 1,
+  "/api/auth/check-status": 1,
   "/api/auth/register": 0,
   "/api/users": 1,
 };

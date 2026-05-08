@@ -39,7 +39,7 @@ export async function PATCH(request, { params }) {
       };
     }
 
-    const body = await getUserVerifiedBody(request, "TRAYECTO", params);
+    const body = await getUserVerifiedBody(request, "TRAYECTO", await params);
 
     const data = createTrayectoData(body, "patch");
 
@@ -61,7 +61,7 @@ export async function DELETE(request, { params }) {
   const { id } = await params;
 
   try {
-    await verifyUser(request, params);
+    await verifyUser(request, await params);
 
     const existing = await prisma.trayecto.findUnique({ where: { id } });
     if (!existing) {

@@ -13,8 +13,10 @@ export async function GET(request) {
       take: limit,
       skip: offset,
       include: {
-        vehiculo: true,
         image: true,
+        vehiculo: true,
+        user: true,
+        viajes: true,
       },
     });
 
@@ -36,6 +38,7 @@ export async function POST(request) {
         image: true,
         vehiculo: true,
         user: true,
+        viajes: true,
       },
     });
 

@@ -12,6 +12,10 @@ export async function GET(request, { params }) {
 
     const user = await prisma.user.findUnique({
       where: { dni },
+      include: {
+        averias: true,
+        conductor: true,
+      },
     });
 
     if (!user) {
@@ -41,6 +45,7 @@ export async function PATCH(request, { params }) {
       where: { dni },
       data,
       include: {
+        averias: true,
         conductor: true,
       },
     });

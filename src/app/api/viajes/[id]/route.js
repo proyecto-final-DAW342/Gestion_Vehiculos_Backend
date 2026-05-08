@@ -39,7 +39,7 @@ export async function PATCH(request, { params }) {
       throw { code: 404 };
     }
 
-    const body = await getUserVerifiedBody(request, "VIAJE", params);
+    const body = await getUserVerifiedBody(request, "VIAJE", await params);
     const data = createViajeData(body, "patch");
 
     const updated = await prisma.viaje.update({
@@ -63,7 +63,7 @@ export async function DELETE(request, { params }) {
   const { id } = await params;
 
   try {
-    await verifyUser(request, params);
+    await verifyUser(request, await params);
 
     const existing = await prisma.viaje.findUnique({ where: { id } });
     if (!existing) {
