@@ -240,7 +240,7 @@ export const createViajeData = (body, method) => {
   if (data.trayectos) {
     data.trayectos = {
       connectOrCreate: data.trayectos.map((trayecto) => ({
-        where: { id: trayecto.id || 0 },
+        where: { id: trayecto.id || "00000000-0000-0000-0000-000000000000" },
         create: {
           horaSalida: trayecto.horaSalida,
           horaLlegada: trayecto.horaLlegada,
