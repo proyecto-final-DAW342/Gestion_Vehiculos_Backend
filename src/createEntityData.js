@@ -101,6 +101,7 @@ const plantillaBase = {
     fechaFinReparacion: z.string().nullable().optional(),
     lugarReparacion: z.string().nullable().optional(),
     costeReparacion: z.float64().nullable().optional(),
+    resuelta: z.boolean().nullable().optional(),
     vehiculoMatricula: z.string().nullable(),
     userDni: z.string().nullable(),
   },

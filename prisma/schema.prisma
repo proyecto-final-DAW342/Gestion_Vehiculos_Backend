@@ -123,6 +123,7 @@ model Averia {
   fechaFinReparacion      DateTime?
   lugarReparacion         String?
   costeReparacion         Float?
+  resuelta                Boolean   @default(false)
 
   vehiculoMatricula String
   vehiculo          Vehiculo @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
