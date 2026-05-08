@@ -6,6 +6,7 @@ const PROTECCION_DEFAULT = 1;
 const proteccionPorMetodo = {
   PATCH: 1,
   POST: 1,
+  DELETE: 1,
   GET: 0,
 };
 

@@ -239,16 +239,16 @@ export const createViajeData = (body, method) => {
 
   if (data.trayectos) {
     data.trayectos = {
-      //connect: data.trayectos.map(({ id }) => ({ id })),
-      create: data.trayectos.map(
-        ({ horaSalida, horaLlegada, origen, destino, distanciaEnKm }) => ({
-          horaSalida,
-          horaLlegada,
-          origen,
-          destino,
-          distanciaEnKm,
-        }),
-      ),
+      connectOrCreate: data.trayectos.map((trayecto) => ({
+        where: { id: trayecto.id || 0 },
+        create: {
+          horaSalida: trayecto.horaSalida,
+          horaLlegada: trayecto.horaLlegada,
+          origen: trayecto.origen,
+          destino: trayecto.destino,
+          distanciaEnKm: trayecto.distanciaEnKm,
+        },
+      })),
     };
   }
   return data;

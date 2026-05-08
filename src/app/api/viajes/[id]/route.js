@@ -4,13 +4,14 @@ import jwt from "jsonwebtoken";
 import { errorHandling } from "@/manejoStatus";
 import { getUserVerifiedBody } from "@/actions";
 import { createViajeData } from "@/createEntityData";
+import { verifyUser } from "@/userVerification";
 
 export async function GET(request, { params }) {
   const { id } = await params;
 
   try {
     const viaje = await prisma.viaje.findUnique({
-      where: { id: +id },
+      where: { id },
       include: {
         vehiculo: true,
         conductor: true,
@@ -25,11 +26,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(viaje, { status: 200 });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }
 
@@ -42,7 +39,7 @@ export async function PATCH(request, { params }) {
       throw { code: 404 };
     }
 
-    const body = await getUserVerifiedBody(request, "VIAJE");
+    const body = await getUserVerifiedBody(request, "VIAJE", params);
     const data = createViajeData(body, "patch");
 
     const updated = await prisma.viaje.update({
@@ -64,44 +61,27 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   const { id } = await params;
-  const authHeader = request.headers.get("Authorization");
-
-  if (!authHeader) {
-    return NextResponse.json(
-      { error: "Unauthorized. Token expired or invalid." },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1] || authHeader;
 
   try {
-    const { id: userId } = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    await verifyUser(request, params);
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized. Token expired or invalid." },
-        { status: 401 },
-      );
-    }
-
-    const existing = await prisma.viaje.findUnique({ where: { id: +id } });
+    const existing = await prisma.viaje.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ message: "Viaje not found" }, { status: 404 });
     }
 
     const deleted = await prisma.viaje.delete({
-      where: { id: +id },
-      include: { trayectos: true },
+      where: { id },
+      include: {
+        vehiculo: true,
+        conductor: true,
+        revision: true,
+        trayectos: true,
+      },
     });
 
     return NextResponse.json(deleted, { status: 200 });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorHandling(error);
   }
 }
