@@ -41,7 +41,7 @@ export async function PATCH(request, { params }) {
 
     const body = await getUserVerifiedBody(request, "TRAYECTO", params);
 
-    const data = await createTrayectoData(body, "patch");
+    const data = createTrayectoData(body, "patch");
 
     const updated = await prisma.trayecto.update({
       where: { id },
