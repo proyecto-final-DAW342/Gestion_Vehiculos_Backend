@@ -18,8 +18,6 @@ model User {
 
   conductor Conductor?
   averias   Averia[]
-
-  @@map("users")
 }
 
 model Conductor {
@@ -30,7 +28,7 @@ model Conductor {
   direccion       String
   fechaNacimiento DateTime
 
-  image Images?
+  image Image?
 
   vehiculo Vehiculo[]
 
@@ -73,39 +71,39 @@ model Viaje {
   trayectos Trayecto[]
 }
 
-//Se podría poner un uid para permitir modificar la matrícula fácilmente. Esto se hará cuando la base de datos no tengo datos
 model Vehiculo {
-  matricula         String   @id @default(uuid())
-  marca             String
-  modelo            String
-  fechaCompra       DateTime
-  anyosAntiguedad   Int
-  tipo              String
-  kilometrosTotales Float
-  alimentacion      String
-  precio            Float    @default(0)
+  id                 String   @id @default(uuid())
+  matricula          String   @unique
+  marca              String
+  modelo             String
+  fechaCompra        DateTime
+  fechaMatriculacion DateTime
+  tipo               String
+  kilometrosTotales  Float
+  alimentacion       String
+  precio             Float    @default(0)
 
   conductorDni String?
   conductor    Conductor? @relation(fields: [conductorDni], references: [dni], onDelete: SetNull)
 
-  //Cuando una revisión de complete, una avería se resuelva o un viaje termine, se puede preguntar al usuario si desea ocultarla 
-  //Cuando un vehículo se borre, sus revisiones, averias y viajes se ocutarán (tal vez preguntándole al usuario) para que sigan siendo accesibles
-  imagenes   Images[]
+  plantillaId String?
+  plantilla   Plantilla? @relation(fields: [plantillaId], references: [id], onDelete: SetNull)
+
+  imagenes   Image[]
   revisiones Revision[]
   averias    Averia[]
   viajes     Viaje[]
-
-  @@map("vehiculos")
 }
 
 model Revision {
-  id       String   @id @default(uuid())
-  fecha    DateTime
-  lugar    String
-  aprobada Boolean
-  costo    Float
-  visible  Boolean
-  //Campo para ver si es una itv o no 
+  id             String   @id @default(uuid())
+  fecha          DateTime
+  lugar          String?
+  aprobada       Boolean?
+  costo          Float?
+  visible        Boolean
+  esItv          Boolean  @default(false)
+  matriculaTexto String
 
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
@@ -114,7 +112,25 @@ model Revision {
   viaje   Viaje?  @relation(fields: [viajeId], references: [id], onDelete: SetNull)
 }
 
-//Para ir a la reparación de la avería puede hacer falta o no un trayecto
+model Plantilla {
+  id     String @id @default(uuid())
+  nombre String
+
+  rangos    Rango[]
+  vehiculos Vehiculo[]
+}
+
+model Rango {
+  id                   String @id @default(uuid())
+  desdeAnyo            Int?
+  desdeKilometro       Int?
+  frecuenciaMeses      Int?
+  frecuenciaKilometros Int?
+
+  plantillaId  String?
+  plantillaITV Plantilla? @relation(fields: [plantillaId], references: [id], onDelete: Cascade)
+}
+
 model Averia {
   id                      String    @id @default(uuid())
   descripcion             String
@@ -132,8 +148,7 @@ model Averia {
   user    User   @relation(fields: [userDni], references: [dni], onDelete: SetNull)
 }
 
-//Cambiar Images a Image cuando no haya datos
-model Images {
+model Image {
   id             String  @id @default(uuid())
   url            String  @unique
   nombre         String  @unique
