@@ -270,8 +270,10 @@ export const createAveriaData = (body, method) => {
   let data = createDataFromPlantilla("PLANTILLA_AVERIA", body, method);
 
   if (data.fechaAveria) data.fechaAveria = new Date(data.fechaAveria);
+
   if (data.fechaComienzoReparacion)
     data.fechaComienzoReparacion = new Date(data.fechaComienzoReparacion);
+
   if (data.fechaFinReparacion)
     data.fechaFinReparacion = new Date(data.fechaFinReparacion);
 
