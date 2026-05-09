@@ -51,15 +51,17 @@ model Trayecto {
 
 //Aunque no salga en la base de datos. Al devolver el json de un Viaje puedo añadir el campo gasto sumando el gasto de todos sus trayectos
 model Viaje {
-  id                String  @id @default(uuid())
-  descripcion       String
-  kmSalida          Float?
-  kmLlegada         Float?
-  origen            String
-  destino           String
-  combustibleInicio Float?
-  combustibleFinal  Float?
-  visible           Boolean
+  id                          String  @id @default(uuid())
+  descripcion                 String
+  kmSalida                    Float?
+  kmLlegada                   Float?
+  origen                      String
+  destino                     String
+  porcentajeCombustibleInicio Float?
+  porcentajeCombustibleFinal  Float?
+  litrosCombustibleInicio     Float?
+  litrosCombustibleFinal      Float?
+  visible                     Boolean
 
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
@@ -72,15 +74,17 @@ model Viaje {
 }
 
 model Vehiculo {
-  matricula          String   @id
-  marca              String
-  modelo             String
-  fechaCompra        DateTime
-  fechaMatriculacion DateTime
-  tipo               String
-  kilometrosTotales  Float
-  alimentacion       String
-  precio             Float    @default(0)
+  matricula                   String   @id
+  marca                       String
+  modelo                      String
+  fechaCompra                 DateTime
+  fechaMatriculacion          DateTime
+  tipo                        String
+  kilometrosTotales           Float
+  alimentacion                String
+  precio                      Float    @default(0)
+  gastoCombustiblePorKiloetro Float
+  capacidadTanqueCombustible  Float
 
   conductorDni String?
   conductor    Conductor? @relation(fields: [conductorDni], references: [dni], onDelete: SetNull)
@@ -94,6 +98,7 @@ model Vehiculo {
 
 model Revision {
   id             String   @id @default(uuid())
+  descripcion    String
   fecha          DateTime
   lugar          String?
   aprobada       Boolean?
