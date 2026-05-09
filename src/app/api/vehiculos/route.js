@@ -14,6 +14,7 @@ export async function GET(request) {
       skip: offset,
       include: {
         conductor: true,
+        plantilla: true,
         averias: true,
         revisiones: true,
         imagenes: true,
@@ -30,26 +31,13 @@ export async function POST(request) {
   try {
     const body = await getUserVerifiedBody(request, "VEHICULO");
 
-    if (
-      !body.matricula ||
-      !body.marca ||
-      !body.modelo ||
-      !body.fechaCompra ||
-      !body.anyosAntiguedad ||
-      !body.tipo ||
-      body.kilometrosTotales === undefined ||
-      !body.alimentacion ||
-      body.gastoPorKm === undefined
-    ) {
-      throw { code: 400 };
-    }
-
     const data = createVehiculoData(body, "post");
 
     const vehiculo = await prisma.vehiculo.create({
       data,
       include: {
         conductor: true,
+        plantilla: true,
         averias: true,
         revisiones: true,
         imagenes: true,

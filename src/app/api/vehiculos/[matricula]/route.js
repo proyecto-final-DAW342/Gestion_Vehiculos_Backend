@@ -13,6 +13,7 @@ export async function GET(request, { params }) {
       where: { matricula },
       include: {
         conductor: true,
+        plantilla: true,
         averias: true,
         revisiones: true,
         imagenes: true,
@@ -46,6 +47,7 @@ export async function PATCH(request, { params }) {
       data,
       include: {
         conductor: true,
+        plantilla: true,
         averias: true,
         revisiones: true,
         imagenes: true,
@@ -72,6 +74,10 @@ export async function DELETE(request, { params }) {
     const deleted = await prisma.vehiculo.delete({
       where: { matricula },
       include: {
+        conductor: true,
+        plantilla: true,
+        averias: true,
+        revisiones: true,
         imagenes: true,
       },
     });

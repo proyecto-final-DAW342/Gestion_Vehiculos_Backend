@@ -56,12 +56,13 @@ const plantillaBase = {
     marca: z.string().nullable(),
     modelo: z.string().nullable(),
     fechaCompra: z.string().nullable(),
-    anyosAntiguedad: z.int().nullable(),
+    fechaMatriculacion: z.string().nullable(),
     tipo: z.string().nullable(),
     kilometrosTotales: z.float64().nullable(),
     alimentacion: z.string().nullable(),
     precio: z.float64().nullable(),
     conductorDni: z.string().nullable().optional(),
+    plantillaId: z.string().nullable().optional(),
     imagenes: z.array(z.string()).nullable().optional(),
     revisiones: z.array(z.string()).nullable().optional(),
     averias: z.array(z.string()).nullable().optional(),
@@ -104,6 +105,21 @@ const plantillaBase = {
     resuelta: z.boolean().nullable().optional(),
     vehiculoMatricula: z.string().nullable(),
     userDni: z.string().nullable(),
+  },
+
+  PLANTILLA_PLANTILLA_REVISION: {
+    nombre: z.string().nullable(),
+    rangos: z
+      .array(
+        z.object({
+          desdeAnyo: z.int().nullable().optional(),
+          desdeKilometro: z.int().nullable().optional(),
+          frecuenciaMeses: z.int().nullable().optional(),
+          frecuenciaKilometros: z.int().nullable().optional(),
+        }),
+      )
+      .nullable(),
+    vehiculos: z.array(z.string()),
   },
 };
 
@@ -155,7 +171,7 @@ export const createConductorData = async (body, method, existing = null) => {
       if (existing.image.fromCloudinary)
         await cloudinary.uploader.destroy(existing.image.nombre);
       const id = existing.image.id;
-      await prisma.images.delete({ where: { id } });
+      await prisma.image.delete({ where: { id } });
     }
 
     if (data.image.url !== null) {
@@ -203,14 +219,14 @@ export const createVehiculoData = (body, method) => {
   let data = createDataFromPlantilla("PLANTILLA_VEHICULO", body, method);
 
   if (data.fechaCompra) data.fechaCompra = new Date(data.fechaCompra);
+  if (data.fechaMatriculacion)
+    data.fechaMatriculacion = new Date(data.fechaMatriculacion);
 
   if (data.imagenes && data.imagenes.length) {
     data.imagenes = {
       connect: data.imagenes.map(({ id }) => ({ id })),
     };
   }
-
-  console.log(data.imagenes);
 
   if (data.revisiones && data.revisiones.length) {
     data.revisiones = {
@@ -276,6 +292,33 @@ export const createAveriaData = (body, method) => {
 
   if (data.fechaFinReparacion)
     data.fechaFinReparacion = new Date(data.fechaFinReparacion);
+
+  return data;
+};
+
+export const createPlantillaData = (body, method) => {
+  let data = createDataFromPlantilla(
+    "PLANTILLA_PLANTILLA_REVISION",
+    body,
+    method,
+  );
+
+  if (data.rangos && data.rangos.length) {
+    data.rangos = {
+      create: data.rangos.map((r) => ({
+        desdeAnyo: r.desdeAnyo,
+        desdeKilometro: r.desdeKilometro,
+        frecuenciaMeses: r.frecuenciaMeses,
+        frecuenciaKilometros: r.frecuenciaKilometros,
+      })),
+    };
+  }
+
+  if (data.vehiculos && data.vehiculos.length) {
+    data.vehiculos = {
+      connect: data.vehiculos.map((matricula) => ({ matricula })),
+    };
+  }
 
   return data;
 };

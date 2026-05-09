@@ -8,7 +8,7 @@ export async function GET(request) {
   const limit = +request.nextUrl.searchParams.get("limit") || 10;
 
   try {
-    const imagenes = await prisma.images.findMany({
+    const imagenes = await prisma.image.findMany({
       take: limit,
       skip: offset,
       include: {
@@ -31,7 +31,7 @@ export async function POST(request) {
     const { url, nombre, vehiculoMatricula, conductorDni } =
       await request.json();
 
-    const query = await prisma.images.create({
+    const query = await prisma.image.create({
       data: {
         url,
         nombre,

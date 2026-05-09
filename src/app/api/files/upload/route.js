@@ -51,7 +51,7 @@ export async function POST(request) {
         .end(buffer);
     });
 
-    const query = await prisma.images.create({
+    const query = await prisma.image.create({
       data: {
         url: result.url,
         nombre: result.public_id,

@@ -72,8 +72,7 @@ model Viaje {
 }
 
 model Vehiculo {
-  id                 String   @id @default(uuid())
-  matricula          String   @unique
+  matricula          String   @id
   marca              String
   modelo             String
   fechaCompra        DateTime
@@ -127,8 +126,8 @@ model Rango {
   frecuenciaMeses      Int?
   frecuenciaKilometros Int?
 
-  plantillaId  String?
-  plantillaITV Plantilla? @relation(fields: [plantillaId], references: [id], onDelete: Cascade)
+  plantillaId String?
+  plantilla   Plantilla? @relation(fields: [plantillaId], references: [id], onDelete: Cascade)
 }
 
 model Averia {
