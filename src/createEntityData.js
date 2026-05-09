@@ -122,6 +122,14 @@ const plantillaBase = {
       .nullable(),
     vehiculos: z.array(z.string()),
   },
+
+  PLANTILLA_RANGO: {
+    desdeAnyo: z.int().nullable().optional(),
+    desdeKilometro: z.int().nullable().optional(),
+    frecuenciaMeses: z.int().nullable().optional(),
+    frecuenciaKilometros: z.int().nullable().optional(),
+    plantillaId: z.string().nullable().optional(),
+  },
 };
 
 const createDataFromPlantilla = (tipo, body, method) => {
@@ -322,4 +330,8 @@ export const createPlantillaData = (body, method) => {
   }
 
   return data;
+};
+
+export const createRangoData = (body, method) => {
+  return createDataFromPlantilla("PLANTILLA_RANGO", body, method);
 };
