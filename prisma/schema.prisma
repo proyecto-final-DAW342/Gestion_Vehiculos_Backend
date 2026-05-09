@@ -112,8 +112,9 @@ model Revision {
 }
 
 model Plantilla {
-  id     String @id @default(uuid())
+  id     String  @id @default(uuid())
   nombre String
+  esItv  Boolean @default(false)
 
   rangos    Rango[]
   vehiculos Vehiculo[]

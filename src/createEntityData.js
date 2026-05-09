@@ -109,6 +109,7 @@ const plantillaBase = {
 
   PLANTILLA_PLANTILLA_REVISION: {
     nombre: z.string().nullable(),
+    esItv: z.boolean().nullable().optional(),
     rangos: z
       .array(
         z.object({
