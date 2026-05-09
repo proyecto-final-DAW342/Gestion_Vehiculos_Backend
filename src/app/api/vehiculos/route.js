@@ -14,7 +14,7 @@ export async function GET(request) {
       skip: offset,
       include: {
         conductor: true,
-        plantilla: true,
+        plantillas: true,
         averias: true,
         revisiones: true,
         imagenes: true,
@@ -37,7 +37,7 @@ export async function POST(request) {
       data,
       include: {
         conductor: true,
-        plantilla: true,
+        plantillas: true,
         averias: true,
         revisiones: true,
         imagenes: true,

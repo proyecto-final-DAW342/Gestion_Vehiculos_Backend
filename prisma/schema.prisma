@@ -85,9 +85,7 @@ model Vehiculo {
   conductorDni String?
   conductor    Conductor? @relation(fields: [conductorDni], references: [dni], onDelete: SetNull)
 
-  plantillaId String?
-  plantilla   Plantilla? @relation(fields: [plantillaId], references: [id], onDelete: SetNull)
-
+  plantillas Plantilla[]
   imagenes   Image[]
   revisiones Revision[]
   averias    Averia[]
