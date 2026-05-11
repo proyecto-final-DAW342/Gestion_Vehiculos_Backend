@@ -14,6 +14,7 @@ export async function GET(request, { params }) {
       include: {
         rangos: true,
         vehiculos: true,
+        revisiones: true,
       },
     });
 
@@ -43,7 +44,7 @@ export async function PATCH(request, { params }) {
       };
     }
 
-    const data = createPlantillaData(body, "patch");
+    const data = await createPlantillaData(body, "patch");
 
     const updated = await prisma.plantilla.update({
       where: { id },
@@ -51,6 +52,7 @@ export async function PATCH(request, { params }) {
       include: {
         rangos: true,
         vehiculos: true,
+        revisiones: true,
       },
     });
 

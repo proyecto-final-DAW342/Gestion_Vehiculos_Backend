@@ -1,3 +1,4 @@
+import { PLANTILLA_FRECUENCIA, PLANTILLA_TRIGGER } from "@prisma/client";
 import cloudinary from "./lib/cloudinary";
 import prisma from "./lib/prisma";
 import bcrypt from "bcryptjs";
@@ -50,6 +51,8 @@ const plantillaBase = {
     visible: z.boolean().nullable(),
     vehiculoMatricula: z.string().nullable().optional(),
     viajeId: z.string().nullable().optional(),
+    plantillaId: z.string().nullable().optional(),
+    kilometrosActuales: z.int().nullable().optional(),
   },
 
   PLANTILLA_VEHICULO: {
@@ -126,6 +129,10 @@ const plantillaBase = {
       )
       .nullable(),
     vehiculos: z.array(z.string()),
+    revisiones: z.array(z.string()).nullable().optional(),
+    trigger: z.enum(PLANTILLA_TRIGGER),
+    frecuencia: z.enum(PLANTILLA_FRECUENCIA),
+    margenDias: z.int().nullable().optional(),
   },
 
   PLANTILLA_RANGO: {
@@ -199,7 +206,7 @@ export const createConductorData = async (body, method, existing = null) => {
     }
   }
 
-  if (data.vehiculo && data.vehiculo.length) {
+  if (data.vehiculo) {
     data.vehiculo = {
       connect: data.vehiculo.map((matricula) => ({ matricula })),
     };
@@ -226,6 +233,8 @@ export const createRevisionData = (body, method) => {
 
   if (data.fecha) data.fecha = new Date(data.fecha);
 
+  data.matriculaTexto = data.vehiculoMatricula;
+
   return data;
 };
 
@@ -236,25 +245,25 @@ export const createVehiculoData = (body, method) => {
   if (data.fechaMatriculacion)
     data.fechaMatriculacion = new Date(data.fechaMatriculacion);
 
-  if (data.imagenes && data.imagenes.length) {
+  if (data.imagenes) {
     data.imagenes = {
       connect: data.imagenes.map(({ id }) => ({ id })),
     };
   }
 
-  if (data.revisiones && data.revisiones.length) {
+  if (data.revisiones) {
     data.revisiones = {
       connect: data.revisiones.map(({ id }) => ({ id })),
     };
   }
 
-  if (data.averias && data.averias.length) {
+  if (data.averias) {
     data.averias = {
       connect: data.averias.map(({ id }) => ({ id })),
     };
   }
 
-  if (data.viajes && data.viajes.length) {
+  if (data.viajes) {
     data.viajes = {
       connect: data.viajes.map(({ id }) => ({ id })),
     };
@@ -310,14 +319,14 @@ export const createAveriaData = (body, method) => {
   return data;
 };
 
-export const createPlantillaData = (body, method) => {
+export const createPlantillaData = async (body, method) => {
   let data = createDataFromPlantilla(
     "PLANTILLA_PLANTILLA_REVISION",
     body,
     method,
   );
 
-  if (data.rangos && data.rangos.length) {
+  if (data.rangos) {
     data.rangos = {
       create: data.rangos.map((r) => ({
         desdeAnyo: r.desdeAnyo,
@@ -328,9 +337,15 @@ export const createPlantillaData = (body, method) => {
     };
   }
 
-  if (data.vehiculos && data.vehiculos.length) {
+  if (data.vehiculos) {
     data.vehiculos = {
       connect: data.vehiculos.map((matricula) => ({ matricula })),
+    };
+  }
+
+  if (data.revisiones) {
+    data.revisiones = {
+      connect: data.revisiones.map((id) => ({ id })),
     };
   }
 

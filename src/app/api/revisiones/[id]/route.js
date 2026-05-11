@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { errorHandling } from "@/manejoStatus";
 import { verifyUser } from "@/userVerification";
 import { createRevisionData } from "@/createEntityData";
+import { getUserVerifiedBody } from "@/actions";
 
 export async function GET(_request, { params }) {
   const { id } = await params;
@@ -14,6 +15,7 @@ export async function GET(_request, { params }) {
       include: {
         vehiculo: true,
         viaje: true,
+        plantilla: true,
       },
     });
 
@@ -45,6 +47,7 @@ export async function PATCH(request, { params }) {
       include: {
         vehiculo: true,
         viaje: true,
+        plantilla: true,
       },
     });
 

@@ -29,6 +29,7 @@ export async function GET(request) {
       include: {
         vehiculo: true,
         viaje: true,
+        plantilla: true,
       },
     });
 
@@ -49,6 +50,7 @@ export async function POST(request) {
       include: {
         vehiculo: true,
         viaje: true,
+        plantilla: true,
       },
     });
 

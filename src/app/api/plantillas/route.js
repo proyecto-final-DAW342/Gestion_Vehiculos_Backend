@@ -15,6 +15,7 @@ export async function GET(request) {
       include: {
         rangos: true,
         vehiculos: true,
+        revisiones: true,
       },
     });
 
@@ -28,13 +29,14 @@ export async function POST(request) {
   try {
     const body = await getUserVerifiedBody(request, "PLANTILLA");
 
-    const data = createPlantillaData(body, "post");
+    const data = await createPlantillaData(body, "post");
 
     const plantilla = await prisma.plantilla.create({
       data,
       include: {
         rangos: true,
         vehiculos: true,
+        revisiones: true,
       },
     });
 

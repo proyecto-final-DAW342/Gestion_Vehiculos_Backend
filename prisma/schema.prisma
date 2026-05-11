@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum PLANTILLA_TRIGGER {
+  ANYO
+  KM
+}
+
+enum PLANTILLA_FRECUENCIA {
+  MESES
+  KM
+}
+
 model User {
   dni      String   @id
   email    String   @unique
@@ -97,27 +107,36 @@ model Vehiculo {
 }
 
 model Revision {
-  id             String   @id @default(uuid())
-  descripcion    String
-  fecha          DateTime
-  lugar          String?
-  aprobada       Boolean?
-  costo          Float?
-  visible        Boolean
-  esItv          Boolean  @default(false)
-  matriculaTexto String
+  id                 String   @id @default(uuid())
+  descripcion        String
+  fecha              DateTime
+  lugar              String?
+  aprobada           Boolean?
+  costo              Float?
+  kilometrosActuales Int?
+  visible            Boolean
+  esItv              Boolean  @default(false)
+  matriculaTexto     String
 
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
 
   viajeId String? @unique
   viaje   Viaje?  @relation(fields: [viajeId], references: [id], onDelete: SetNull)
+
+  plantillaId String?
+  plantilla   Plantilla? @relation("RevisionesDePlantilla", fields: [plantillaId], references: [id], onDelete: SetNull)
 }
 
 model Plantilla {
-  id     String  @id @default(uuid())
-  nombre String
-  esItv  Boolean @default(false)
+  id         String               @id @default(uuid())
+  nombre     String
+  esItv      Boolean              @default(false)
+  margenDias Int                  @default(0) //Por si se quiere programar la revisión x días después desde la última revisión o desde hoy 
+  trigger    PLANTILLA_TRIGGER //Para saber si se crea la reparación de la plantilla en base a la cantidad de años del vehículo o la cantidad de kilómetros
+  frecuencia PLANTILLA_FRECUENCIA //Para saber si se crea la reparación de la plantilla cada X meses o cada X kilómetros
+
+  revisiones Revision[] @relation("RevisionesDePlantilla")
 
   rangos    Rango[]
   vehiculos Vehiculo[]
