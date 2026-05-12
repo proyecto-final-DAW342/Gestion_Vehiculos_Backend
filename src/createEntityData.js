@@ -1,4 +1,8 @@
-import { PLANTILLA_FRECUENCIA, PLANTILLA_TRIGGER } from "@prisma/client";
+import {
+  ESTADO_VIAJE,
+  PLANTILLA_FRECUENCIA,
+  PLANTILLA_TRIGGER,
+} from "@prisma/client";
 import cloudinary from "./lib/cloudinary";
 import prisma from "./lib/prisma";
 import bcrypt from "bcryptjs";
@@ -101,6 +105,7 @@ const plantillaBase = {
       )
       .nullable()
       .optional(),
+    estado: z.enum(ESTADO_VIAJE),
   },
 
   PLANTILLA_AVERIA: {

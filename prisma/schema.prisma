@@ -17,6 +17,12 @@ enum PLANTILLA_FRECUENCIA {
   KM
 }
 
+enum ESTADO_VIAJE {
+  PENDIENTE
+  ACTIVO
+  FINALIZADO
+}
+
 model User {
   dni      String   @id
   email    String   @unique
@@ -61,7 +67,7 @@ model Trayecto {
 
 //Aunque no salga en la base de datos. Al devolver el json de un Viaje puedo añadir el campo gasto sumando el gasto de todos sus trayectos
 model Viaje {
-  id                          String  @id @default(uuid())
+  id                          String       @id @default(uuid())
   descripcion                 String
   kmSalida                    Float?
   kmLlegada                   Float?
@@ -72,6 +78,7 @@ model Viaje {
   litrosCombustibleInicio     Float?
   litrosCombustibleFinal      Float?
   visible                     Boolean
+  estado                      ESTADO_VIAJE @default(PENDIENTE)
 
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
