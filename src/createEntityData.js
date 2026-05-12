@@ -312,9 +312,11 @@ export const createAveriaData = (body, method) => {
 
   if (data.fechaComienzoReparacion)
     data.fechaComienzoReparacion = new Date(data.fechaComienzoReparacion);
+  else data.fechaComienzoReparacion = null;
 
   if (data.fechaFinReparacion)
     data.fechaFinReparacion = new Date(data.fechaFinReparacion);
+  else data.fechaFinReparacion = null;
 
   return data;
 };
