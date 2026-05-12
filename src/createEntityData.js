@@ -295,13 +295,13 @@ export const createViajeData = (body, method) => {
 
   if (data.trayectos) {
     data.trayectos = {
-      create: {
+      create: data.trayectos.map((trayecto) => ({
         horaSalida: trayecto.horaSalida,
         horaLlegada: trayecto.horaLlegada,
         origen: trayecto.origen,
         destino: trayecto.destino,
         distanciaEnKm: trayecto.distanciaEnKm,
-      },
+      })),
     };
   }
   return data;
