@@ -72,7 +72,7 @@ const plantillaBase = {
     gastoCombustiblePorKiloetro: z.float64().nullable(),
     capacidadTanqueCombustible: z.float64().nullable(),
     conductorDni: z.string().nullable().optional(),
-    plantillaId: z.string().nullable().optional(),
+    plantillas: z.array(z.string()).nullable().optional(),
     imagenes: z.array(z.string()).nullable().optional(),
     revisiones: z.array(z.string()).nullable().optional(),
     averias: z.array(z.string()).nullable().optional(),
@@ -273,6 +273,12 @@ export const createVehiculoData = (body, method) => {
   if (data.viajes) {
     data.viajes = {
       connect: data.viajes.map(({ id }) => ({ id })),
+    };
+  }
+
+  if (data.plantillas) {
+    data.plantillas = {
+      connect: data.plantillas.map(({ id }) => ({ id })),
     };
   }
 
