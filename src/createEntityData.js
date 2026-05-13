@@ -254,7 +254,7 @@ export const createVehiculoData = (body, method) => {
 
   if (data.imagenes) {
     data.imagenes = {
-      connect: data.imagenes.map(({ id }) => ({ id })),
+      connect: data.imagenes.map((id) => ({ id })),
     };
   }
 
