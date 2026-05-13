@@ -18,7 +18,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    await verifyUser(request.headers.get("Authorization"));
+    await verifyUser(request);
 
     const formData = await request.formData();
 
