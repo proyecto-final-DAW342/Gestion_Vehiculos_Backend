@@ -90,6 +90,8 @@ const plantillaBase = {
     litrosCombustibleInicio: z.float64().nullable().optional(),
     litrosCombustibleFinal: z.float64().nullable().optional(),
     visible: z.boolean().nullable(),
+    fechaSalida: z.string().nullable().optional(),
+    fechaLlegada: z.string().nullable().optional(),
     vehiculoMatricula: z.string().nullable().optional(),
     conductorDni: z.string().nullable().optional(),
     revisionId: z.string().nullable().optional(),
@@ -292,6 +294,9 @@ export const createViajeData = (body, method) => {
     };
   }
   delete data.revisionId;
+
+  if (data.fechaSalida) data.fechaSalida = new Date(data.fechaSalida);
+  if (data.fechaLlegada) data.fechaLlegada = new Date(data.fechaLlegada);
 
   if (data.trayectos) {
     data.trayectos = {

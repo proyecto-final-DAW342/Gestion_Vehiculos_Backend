@@ -79,6 +79,8 @@ model Viaje {
   litrosCombustibleFinal      Float?
   visible                     Boolean
   estado                      ESTADO_VIAJE @default(PENDIENTE)
+  fechaSalida                 DateTime?
+  fechaLlegada                DateTime?
 
   vehiculoMatricula String?
   vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
