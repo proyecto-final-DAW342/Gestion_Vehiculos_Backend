@@ -8,6 +8,22 @@ import cloudinary from "./lib/cloudinary";
 import prisma from "./lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { float32 } from "zod/mini";
+import {
+  obtenerEstacioinesCCAA,
+  obtenerEstacioinesMunicipio,
+  obtenerEstacioinesProvincia,
+  obtenerEstacionesCCAA,
+  obtenerEstacionesMunicipio,
+  obtenerEstacionesProvincia,
+} from "./services/gasolinerasAPI";
+import {
+  obtenerGasolineraMasBarata,
+  obtenerPrecioMedioGasolineras,
+  parsearEstacionesCCAA,
+  parsearEstacionesMunicipio,
+  parsearEstacionesProvincia,
+} from "./services/procesamientoGasolinerasJSON";
 
 const plantillaBase = {
   PLANTILLA_USUARIO: {
@@ -151,7 +167,53 @@ const plantillaBase = {
     frecuenciaKilometros: z.int().nullable().optional(),
     plantillaId: z.string().nullable().optional(),
   },
+
+  PLANTILLA_ESTACION: {
+    matriculaVehiculo: z.string().nullable(),
+    IDCCAA: z.string().nullable(),
+    idProvincia: z.string().nullable().optional(),
+    idMunicipio: z.string().nullable().optional(),
+    idProducto: z.string(), //Temporal (o no)
+  },
 };
+
+const ESTACIONES_FORMATO = z.object({
+  direccion: z.string().nullable(),
+  precio: z.float64().nullable(),
+  latitud: z.string().nullable(),
+  "longitud (WGS84)": z.string().nullable(),
+});
+
+const PROVINCIA_ESTACIONES_FORMATO = z.object({
+  municipio: z.string().nullable(),
+  estaciones: z.array(ESTACIONES_FORMATO).nullable(),
+});
+
+const CCAA_ESTACIONES_FORMATO = z.object({
+  provincia: z.string().nullable(),
+  municipios: z.array(PROVINCIA_ESTACIONES_FORMATO).nullable(),
+});
+
+const ESTACIONES_PROCESADAS = z.object({
+  precioMedioCCAA: z.float64().nullable(),
+  direccionEstacionMasBarataCCAA: z.string().nullable(),
+  provinciaEstacionMasBarataCCAA: z.string().nullable(),
+  municipioEstacionMasBarataCCAA: z.string().nullable(),
+  precioEstacionMasBarataCCAA: z.float32().nullable(),
+  estacionesCCAA: z.array(CCAA_ESTACIONES_FORMATO).nullable().optional(),
+  precioMedioProvincia: z.float64().nullable().optional(),
+  direccionEstacionMasBarataProvincia: z.string().nullable().optional(),
+  municipioEstacionMasBarataProvincia: z.string().nullable().optional(),
+  precioEstacionMasBarataProvincia: z.float64().nullable().optional(),
+  estacionesProvincia: z
+    .array(PROVINCIA_ESTACIONES_FORMATO)
+    .nullable()
+    .optional(),
+  precioMedioMunicipio: z.float64().nullable().optional(),
+  direccionEstacionMasBarataMunicipio: z.string().nullable().optional(),
+  precioEstacionMasBarataMunicipio: z.float64().nullable().optional(),
+  estacionesMunicipio: z.array(ESTACIONES_FORMATO).nullable().optional(),
+});
 
 const createDataFromPlantilla = (tipo, body, method) => {
   method = method.toLowerCase();
@@ -378,4 +440,77 @@ export const createPlantillaData = async (body, method) => {
 
 export const createRangoData = (body, method) => {
   return createDataFromPlantilla("PLANTILLA_RANGO", body, method);
+};
+
+export const createEstacionData = async (body) => {
+  let data = createDataFromPlantilla("PLANTILLA_ESTACION", body, "post");
+
+  const estacionesCCAA =
+    data.IDCCAA != null
+      ? await obtenerEstacionesCCAA(data.IDCCAA, data.idProducto)
+      : null;
+
+  const estacionesProvincia =
+    data.idProvincia != null
+      ? await obtenerEstacionesProvincia(data.idProvincia, data.idProducto)
+      : null;
+
+  const estacionesMunicipio =
+    data.idMunicipio != null
+      ? await obtenerEstacionesMunicipio(data.idMunicipio, data.idProducto)
+      : null;
+
+  //Estaciones CCAA
+  data.precioMedioCCAA = obtenerPrecioMedioGasolineras(estacionesCCAA);
+
+  const gasolineraMasBarataCCAA = obtenerGasolineraMasBarata(estacionesCCAA);
+
+  data.direccionEstacionMasBarataCCAA = gasolineraMasBarataCCAA.Dirección;
+  data.provinciaEstacionMasBarataCCAA = gasolineraMasBarataCCAA.Provincia;
+  data.municipioEstacionMasBarataCCAA = gasolineraMasBarataCCAA.Municipio;
+  data.precioEstacionMasBarataCCAA = gasolineraMasBarataCCAA.PrecioProducto;
+
+  //Estaciones provincia
+  if (estacionesProvincia) {
+    data.precioMedioProvincia =
+      obtenerPrecioMedioGasolineras(estacionesProvincia);
+
+    const gasolineraMasBarataProvincia =
+      obtenerGasolineraMasBarata(estacionesProvincia);
+
+    data.direccionEstacionMasBarataProvincia =
+      gasolineraMasBarataProvincia.Dirección;
+    data.municipioEstacionMasBarataProvincia =
+      gasolineraMasBarataProvincia.Municipio;
+    data.precioEstacionMasBarataProvincia =
+      gasolineraMasBarataProvincia.PrecioProducto;
+  }
+
+  //Estaciones municipio
+  if (estacionesMunicipio) {
+    data.precioMedioMunicipio =
+      obtenerPrecioMedioGasolineras(estacionesMunicipio);
+
+    const gasolineraMasBarataMunicipio =
+      obtenerGasolineraMasBarata(estacionesMunicipio);
+
+    data.direccionEstacionMasBarataMunicipio =
+      gasolineraMasBarataMunicipio.Dirección;
+    data.precioEstacionMasBarataMunicipio =
+      gasolineraMasBarataMunicipio.PrecioProducto;
+  }
+
+  if (!estacionesProvincia) {
+    data.estacionesCCAA = await parsearEstacionesCCAA(
+      data.IDCCAA,
+      estacionesCCAA,
+    );
+  } else if (!estacionesMunicipio) {
+    data.estacionesProvincia = parsearEstacionesProvincia(estacionesProvincia);
+  } else {
+    data.estacionesMunicipio = parsearEstacionesMunicipio(estacionesMunicipio);
+  }
+
+  const resultadoFinal = ESTACIONES_PROCESADAS.parse(data);
+  return resultadoFinal;
 };
