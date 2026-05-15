@@ -1,5 +1,6 @@
 import {
   ESTADO_VIAJE,
+  ESTADO_VEHICULO,
   PLANTILLA_FRECUENCIA,
   PLANTILLA_TRIGGER,
 } from "@prisma/client";
@@ -71,6 +72,7 @@ const plantillaBase = {
     precio: z.float64().nullable(),
     gastoCombustiblePorKiloetro: z.float64().nullable(),
     capacidadTanqueCombustible: z.float64().nullable(),
+    estado: z.enum(ESTADO_VEHICULO).nullable().optional(),
     conductorDni: z.string().nullable().optional(),
     plantillas: z.array(z.string()).nullable().optional(),
     imagenes: z.array(z.string()).nullable().optional(),
@@ -107,7 +109,7 @@ const plantillaBase = {
       )
       .nullable()
       .optional(),
-    estado: z.enum(ESTADO_VIAJE),
+    estado: z.enum(ESTADO_VIAJE).nullable().optional(),
   },
 
   PLANTILLA_AVERIA: {

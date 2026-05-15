@@ -23,6 +23,12 @@ enum ESTADO_VIAJE {
   FINALIZADO
 }
 
+enum ESTADO_VEHICULO {
+  DISPONIBLE
+  EN_TRAYECTO
+  AVERIADO
+}
+
 model User {
   dni      String   @id
   email    String   @unique
@@ -93,7 +99,7 @@ model Viaje {
 }
 
 model Vehiculo {
-  matricula                   String   @id
+  matricula                   String          @id
   marca                       String
   modelo                      String
   fechaCompra                 DateTime
@@ -101,9 +107,10 @@ model Vehiculo {
   tipo                        String
   kilometrosTotales           Float
   alimentacion                String
-  precio                      Float    @default(0)
+  precio                      Float           @default(0)
   gastoCombustiblePorKiloetro Float
   capacidadTanqueCombustible  Float
+  estado                      ESTADO_VEHICULO @default(DISPONIBLE)
 
   conductorDni String?
   conductor    Conductor? @relation(fields: [conductorDni], references: [dni], onDelete: SetNull)
