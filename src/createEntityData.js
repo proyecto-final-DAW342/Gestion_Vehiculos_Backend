@@ -346,7 +346,7 @@ export const createVehiculoData = (body, method) => {
     };
   }
 
-  data.estado = data.estado.toUpperCase();
+  if (data.estado) data.estado = data.estado.toUpperCase();
 
   return data;
 };
@@ -384,7 +384,7 @@ export const createViajeData = (body, method) => {
     };
   }
 
-  data.estado = data.estado.toUpperCase();
+  if (data.estado) data.estado = data.estado.toUpperCase();
 
   return data;
 };
