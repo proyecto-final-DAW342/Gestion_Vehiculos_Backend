@@ -61,7 +61,7 @@ export async function DELETE(request, { params }) {
   const { id } = await params;
 
   try {
-    await verifyUser(request.headers.get("Authorization"));
+    await verifyUser(request);
 
     const existing = await prisma.vehiculo.findUnique({ where: { id } });
     if (!existing) {

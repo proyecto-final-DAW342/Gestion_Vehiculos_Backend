@@ -26,7 +26,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    await verifyUser(request.headers.get("Authorization"));
+    await verifyUser(request);
 
     const { url, nombre, vehiculoMatricula, conductorDni } =
       await request.json();
