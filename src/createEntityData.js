@@ -342,7 +342,7 @@ export const createVehiculoData = (body, method) => {
 
   if (data.plantillas) {
     data.plantillas = {
-      connect: data.plantillas.map(({ id }) => ({ id })),
+      connect: data.plantillas.map((id) => ({ id })),
     };
   }
 
