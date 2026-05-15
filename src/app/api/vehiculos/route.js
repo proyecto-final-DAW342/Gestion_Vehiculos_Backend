@@ -17,6 +17,7 @@ export async function GET(request) {
         plantillas: true,
         averias: true,
         revisiones: true,
+        viajes: true,
         imagenes: true,
       },
     });
@@ -40,6 +41,7 @@ export async function POST(request) {
         plantillas: true,
         averias: true,
         revisiones: true,
+        viajes: true,
         imagenes: true,
       },
     });

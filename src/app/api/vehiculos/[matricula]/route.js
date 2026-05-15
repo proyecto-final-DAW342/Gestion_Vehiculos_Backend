@@ -50,6 +50,7 @@ export async function PATCH(request, { params }) {
         plantillas: true,
         averias: true,
         revisiones: true,
+        viajes: true,
         imagenes: true,
       },
     });
@@ -78,6 +79,7 @@ export async function DELETE(request, { params }) {
         plantilla: true,
         averias: true,
         revisiones: true,
+        viajes: true,
         imagenes: true,
       },
     });

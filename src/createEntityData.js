@@ -324,19 +324,19 @@ export const createVehiculoData = (body, method) => {
 
   if (data.revisiones) {
     data.revisiones = {
-      connect: data.revisiones.map(({ id }) => ({ id })),
+      connect: data.revisiones.map((id) => ({ id })),
     };
   }
 
   if (data.averias) {
     data.averias = {
-      connect: data.averias.map(({ id }) => ({ id })),
+      connect: data.averias.map((id) => ({ id })),
     };
   }
 
   if (data.viajes) {
     data.viajes = {
-      connect: data.viajes.map(({ id }) => ({ id })),
+      connect: data.viajes.map((id) => ({ id })),
     };
   }
 
