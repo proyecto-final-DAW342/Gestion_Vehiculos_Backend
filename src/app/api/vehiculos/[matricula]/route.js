@@ -76,7 +76,7 @@ export async function DELETE(request, { params }) {
       where: { matricula },
       include: {
         conductor: true,
-        plantilla: true,
+        plantillas: true,
         averias: true,
         revisiones: true,
         viajes: true,
