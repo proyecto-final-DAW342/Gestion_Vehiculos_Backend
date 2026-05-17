@@ -178,12 +178,14 @@ model Averia {
   lugarReparacion         String?
   costeReparacion         Float?
   resuelta                Boolean   @default(false)
+  userDniHard             String
+  vehiculoMatriculaHard   String
 
-  vehiculoMatricula String
-  vehiculo          Vehiculo @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
+  vehiculoMatricula String?
+  vehiculo          Vehiculo? @relation(fields: [vehiculoMatricula], references: [matricula], onDelete: SetNull)
 
-  userDni String
-  user    User   @relation(fields: [userDni], references: [dni], onDelete: SetNull)
+  userDni String?
+  user    User?   @relation(fields: [userDni], references: [dni], onDelete: SetNull)
 }
 
 model Image {

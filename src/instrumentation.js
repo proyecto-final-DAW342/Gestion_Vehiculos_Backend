@@ -45,7 +45,7 @@ export async function register() {
 
             //Frecuencia para agregar nueva revisión
             if (rangoActual) {
-              if (p.frecuencia == "MESES" && p.revisiones.length) {
+              if (p.frecuencia == "MESES") {
                 const idRevisiones = p.revisiones.map((rev) => {
                   return rev.id;
                 });
@@ -61,8 +61,28 @@ export async function register() {
                   },
                 });
 
-                if (ultimaRevision.fecha < new Date()) {
+                if (ultimaRevision && ultimaRevision.fecha < new Date()) {
                   let nuevaFecha = new Date(ultimaRevision.fecha);
+                  nuevaFecha.setMonth(
+                    nuevaFecha.getMonth() + rangoActual.frecuenciaMeses,
+                  );
+                  nuevaFecha.setDate(nuevaFecha.getDate() + p.margenDias);
+
+                  await prisma.revision.create({
+                    data: {
+                      descripcion: p.nombre,
+                      fecha: nuevaFecha,
+                      visible: true,
+                      esItv: p.esItv,
+                      matriculaTexto: v.matricula,
+                      vehiculoMatricula: v.matricula,
+                      plantillaId: p.id,
+                    },
+                  });
+                }
+
+                if (!ultimaRevision) {
+                  let nuevaFecha = new Date();
                   nuevaFecha.setMonth(
                     nuevaFecha.getMonth() + rangoActual.frecuenciaMeses,
                   );
