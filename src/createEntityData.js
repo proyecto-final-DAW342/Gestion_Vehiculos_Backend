@@ -402,6 +402,10 @@ export const createAveriaData = (body, method) => {
     data.fechaFinReparacion = new Date(data.fechaFinReparacion);
   else data.fechaFinReparacion = null;
 
+  if (data.vehiculoMatricula)
+    data.vehiculoMatriculaHard = data.vehiculoMatricula;
+  if (data.userDni) data.userDniHard = data.userDni;
+
   return data;
 };
 
