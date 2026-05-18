@@ -16,7 +16,7 @@ const proteccionPorRuta = {
   "/api/files/upload": 3,
   "/api/auth/check-status": 1,
   "/api/auth/register": 3,
-  "/api/users": 1,
+  "/api/users": 3,
 };
 
 const nivelProteccion = [
@@ -80,7 +80,7 @@ export async function verifyUser(request, params = {}) {
   }
 }
 
-export async function verifyUserLogged(authHeader) {
+async function verifyUserLogged(authHeader) {
   try {
     if (!authHeader) {
       throw { code: 401, customMessage: "Error: no has enviado token" };
@@ -101,7 +101,7 @@ export async function verifyUserLogged(authHeader) {
   }
 }
 
-export async function verifyUserAdmin(authHeader) {
+async function verifyUserAdmin(authHeader) {
   try {
     const user = await verifyUserLogged(authHeader);
 

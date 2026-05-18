@@ -1,11 +1,11 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { verifyUserAdmin } from "@/userVerification";
+import { verifyUser } from "@/userVerification";
 import { errorHandling } from "@/manejoStatus";
 
 export async function GET(request) {
   try {
-    await verifyUserAdmin(request.headers.get("Authorization"));
+    await verifyUser(request);
 
     const users = await prisma.user.findMany({
       include: {
