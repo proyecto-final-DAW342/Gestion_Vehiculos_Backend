@@ -67,7 +67,10 @@ export async function DELETE(request, { params }) {
   try {
     await verifyUser(request);
 
-    const existing = await prisma.vehiculo.findUnique({ where: { matricula } });
+    const existing = await prisma.vehiculo.findUnique({
+      where: { matricula },
+      include: { imagenes: true },
+    });
     if (!existing) {
       throw { code: 404 };
     }
