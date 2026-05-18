@@ -4,6 +4,7 @@ import { getUserVerifiedBody } from "@/actions";
 import { verifyUser } from "@/userVerification";
 import { errorHandling } from "@/manejoStatus";
 import { createConductorData } from "@/createEntityData";
+import cloudinary from "@/lib/cloudinary";
 
 export async function GET(request, { params }) {
   const { dni } = await params;
@@ -75,13 +76,17 @@ export async function DELETE(request, { params }) {
   try {
     await verifyUser(request);
 
-    const existing = await prisma.conductor.findUnique({ where: { dni } });
+    const existing = await prisma.conductor.findUnique({
+      where: { dni },
+      include: { image: true },
+    });
     if (!existing) {
-      return NextResponse.json(
-        { message: "Conductor not found" },
-        { status: 404 },
-      );
+      throw {
+        code: 404,
+      };
     }
+
+    if (existing.image) cloudinary.uploader.destroy(existing.image.nombre);
 
     const deleted = await prisma.conductor.delete({ where: { dni } });
     return NextResponse.json(deleted, { status: 200 });
