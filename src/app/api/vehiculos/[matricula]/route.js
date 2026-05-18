@@ -72,6 +72,12 @@ export async function DELETE(request, { params }) {
       throw { code: 404 };
     }
 
+    if (existing.imagenes) {
+      existing.imagenes.forEach((img) => {
+        cloudinary.uploader.destroy(img.nombre);
+      });
+    }
+
     const deleted = await prisma.vehiculo.delete({
       where: { matricula },
       include: {
