@@ -63,8 +63,6 @@ export async function getBody(request, type) {
 
     body.checked = false;
 
-    normalizeBody(body, type);
-
     return body;
   } catch (error) {
     throw error;
@@ -78,21 +76,6 @@ export async function getUserVerifiedBody(request, type, params = {}) {
     return getBody(request, type);
   } catch (error) {
     throw error;
-  }
-}
-
-function normalizeBody(body, type) {
-  if (
-    type === "CONDUCTOR" &&
-    body.image &&
-    Array.isArray(body.image) &&
-    body.image[0]
-  ) {
-    body.image.forEach((img, i) => {
-      i && cloudinary.uploader.destroy(img.nombre);
-    });
-
-    body.image = body.image[0];
   }
 }
 

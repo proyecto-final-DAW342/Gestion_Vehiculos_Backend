@@ -262,6 +262,14 @@ export const createTrayectoData = (body, method) => {
 export const createConductorData = async (body, method, existing = null) => {
   let data = createDataFromPlantilla("PLANTILLA_CONDUCTOR", body, method);
 
+  if (data.image && Array.isArray(data.image) && data.image[0]) {
+    data.image.forEach((img, i) => {
+      i && cloudinary.uploader.destroy(img.nombre);
+    });
+
+    data.image = data.image[0];
+  }
+
   if (data.fechaNacimiento)
     data.fechaNacimiento = new Date(data.fechaNacimiento);
 
