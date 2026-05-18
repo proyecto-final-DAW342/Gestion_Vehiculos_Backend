@@ -28,7 +28,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    let body = await getUserVerifiedBody(request, "VIAJE");
+    let body = await getUserVerifiedBody(request);
 
     let data = createViajeData(body, "post");
 

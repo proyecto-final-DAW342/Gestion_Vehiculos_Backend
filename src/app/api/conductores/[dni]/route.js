@@ -49,7 +49,7 @@ export async function PATCH(request, { params }) {
       throw { code: 404 };
     }
 
-    const body = await getUserVerifiedBody(request, "CONDUCTOR");
+    const body = await getUserVerifiedBody(request);
 
     const data = await createConductorData(body, "patch", existing);
 

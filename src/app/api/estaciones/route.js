@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
-    const body = await getUserVerifiedBody(request, "ESTACION");
+    const body = await getUserVerifiedBody(request);
 
     const data = await createEstacionData(body, "post");
 

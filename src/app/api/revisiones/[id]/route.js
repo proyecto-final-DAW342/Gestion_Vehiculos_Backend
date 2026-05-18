@@ -38,7 +38,7 @@ export async function PATCH(request, { params }) {
       throw { code: 404 };
     }
 
-    const body = await getUserVerifiedBody(request, "REVISION");
+    const body = await getUserVerifiedBody(request);
     const data = createRevisionData(body, "patch");
 
     const updated = await prisma.revision.update({

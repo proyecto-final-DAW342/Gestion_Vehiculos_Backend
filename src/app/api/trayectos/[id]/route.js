@@ -39,7 +39,7 @@ export async function PATCH(request, { params }) {
       };
     }
 
-    const body = await getUserVerifiedBody(request, "TRAYECTO", await params);
+    const body = await getUserVerifiedBody(request, await params);
 
     const data = createTrayectoData(body, "patch");
 

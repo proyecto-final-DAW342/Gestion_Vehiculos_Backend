@@ -50,7 +50,7 @@ export async function uploadFile(file) {
   }
 }
 
-export async function getBody(request, type) {
+async function getBody(request) {
   const contentType = request.headers.get("content-type") || "";
   let body;
 
@@ -69,11 +69,11 @@ export async function getBody(request, type) {
   }
 }
 
-export async function getUserVerifiedBody(request, type, params = {}) {
+export async function getUserVerifiedBody(request, params = {}) {
   try {
     await verifyUser(request, params);
 
-    return getBody(request, type);
+    return getBody(request);
   } catch (error) {
     throw error;
   }

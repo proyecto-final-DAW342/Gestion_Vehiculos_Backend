@@ -25,7 +25,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = await getUserVerifiedBody(request, "TRAYECTO");
+    const body = await getUserVerifiedBody(request);
 
     const data = createTrayectoData(body, "post");
 

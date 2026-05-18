@@ -26,7 +26,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = await getUserVerifiedBody(request, "AVERIA");
+    const body = await getUserVerifiedBody(request);
 
     const data = createAveriaData(body, "post");
 

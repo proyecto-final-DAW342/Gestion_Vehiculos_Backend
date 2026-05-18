@@ -32,7 +32,7 @@ export async function GET(request, { params }) {
 export async function PATCH(request, { params }) {
   const { id } = await params;
   try {
-    const body = await getUserVerifiedBody(request, "RANGO", await params);
+    const body = await getUserVerifiedBody(request, await params);
 
     const existing = await prisma.rango.findUnique({ where: { id } });
     if (!existing) {

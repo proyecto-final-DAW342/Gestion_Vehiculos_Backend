@@ -6,7 +6,7 @@ import { createUserData } from "@/createEntityData";
 
 export async function POST(request) {
   try {
-    const body = await getUserVerifiedBody(request, "USER");
+    const body = await getUserVerifiedBody(request);
 
     const data = await createUserData(body, "post");
     const user = await prisma.user.create({

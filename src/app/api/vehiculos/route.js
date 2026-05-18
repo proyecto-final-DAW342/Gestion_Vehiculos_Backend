@@ -30,7 +30,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = await getUserVerifiedBody(request, "VEHICULO");
+    const body = await getUserVerifiedBody(request);
 
     const data = createVehiculoData(body, "post");
 

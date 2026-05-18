@@ -37,7 +37,7 @@ export async function PATCH(request, { params }) {
   try {
     await verifyUserAdminOrSameDni(request.headers.get("Authorization"), dni);
 
-    const body = await getUserVerifiedBody(request, "USER");
+    const body = await getUserVerifiedBody(request);
 
     const data = createUserData(body, "patch");
 

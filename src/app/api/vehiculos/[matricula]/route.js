@@ -39,7 +39,7 @@ export async function PATCH(request, { params }) {
       throw { code: 404 };
     }
 
-    const body = await getUserVerifiedBody(request, "VEHICULO");
+    const body = await getUserVerifiedBody(request);
     const data = createVehiculoData(body, "patch");
 
     const updated = await prisma.vehiculo.update({

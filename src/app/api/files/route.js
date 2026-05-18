@@ -27,7 +27,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = await getUserVerifiedBody(request, "IMAGE");
+    const body = await getUserVerifiedBody(request);
 
     const data = createImageData(body, "post");
     data.fromCloudinary = false;

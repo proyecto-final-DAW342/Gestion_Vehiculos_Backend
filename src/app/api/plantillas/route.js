@@ -27,7 +27,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const body = await getUserVerifiedBody(request, "PLANTILLA");
+    const body = await getUserVerifiedBody(request);
 
     const data = await createPlantillaData(body, "post");
 
