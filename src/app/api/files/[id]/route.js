@@ -1,3 +1,4 @@
+import cloudinary from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
 import { errorHandling } from "@/manejoStatus";
 import { verifyUser } from "@/userVerification";
