@@ -12,6 +12,8 @@ const proteccionPorMetodo = {
 
 const proteccionPorRuta = {
   DEFAULT: 1,
+  "/api/files": 3,
+  "/api/files/upload": 3,
   "/api/auth/check-status": 1,
   "/api/auth/register": 3,
   "/api/users": 1,
