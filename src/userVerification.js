@@ -18,10 +18,10 @@ const proteccionPorRuta = {
 };
 
 const nivelProteccion = [
-  null,
-  verifyUserLogged,
-  verifyUserAdminOrSameDni,
-  verifyUserAdmin,
+  null, // 0
+  verifyUserLogged, // 1
+  verifyUserAdminOrSameDni, // 2
+  verifyUserAdmin, // ...
 ];
 
 export async function verifyUser(request, params = {}) {
