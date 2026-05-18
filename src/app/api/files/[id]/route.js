@@ -1,5 +1,7 @@
 import prisma from "@/lib/prisma";
 import { errorHandling } from "@/manejoStatus";
+import { verifyUser } from "@/userVerification";
+import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
   const { id } = await params;
