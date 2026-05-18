@@ -4,6 +4,7 @@ import { errorHandling } from "@/manejoStatus";
 import { verifyUser } from "@/userVerification";
 import { createVehiculoData } from "@/createEntityData";
 import { getUserVerifiedBody } from "@/actions";
+import cloudinary from "@/lib/cloudinary";
 
 export async function GET(request, { params }) {
   const { matricula } = await params;
