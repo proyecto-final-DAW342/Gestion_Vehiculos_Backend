@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyUser } from "@/userVerification";
 import { errorHandling } from "@/manejoStatus";
+import { getUserVerifiedBody } from "@/actions";
+import { createImageData } from "@/createEntityData";
 
 export async function GET(request) {
   const offset = +request.nextUrl.searchParams.get("offset") || 0;
@@ -26,19 +27,13 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    await verifyUser(request);
+    const body = await getUserVerifiedBody(request, "IMAGE");
 
-    const { url, nombre, vehiculoMatricula, conductorDni } =
-      await request.json();
+    const data = createImageData(body, "post");
+    data.fromCloudinary = false;
 
     const query = await prisma.image.create({
-      data: {
-        url,
-        nombre,
-        fromCloudinary: false,
-        vehiculoMatricula,
-        conductorDni,
-      },
+      data,
       include: {
         vehiculo: true,
         conductor: true,

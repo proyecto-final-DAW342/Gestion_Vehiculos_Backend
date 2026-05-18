@@ -140,6 +140,13 @@ const plantillaBase = {
     userDni: z.string().nullable(),
   },
 
+  PLANTILLA_IMAGEN: {
+    url: z.string().nullable(),
+    nombre: z.string().nullable().optional(),
+    vehiculoMatricula: z.string().nullable().optional(),
+    conductorDni: z.string().nullable().optional(),
+  },
+
   PLANTILLA_PLANTILLA_REVISION: {
     nombre: z.string().nullable(),
     esItv: z.boolean().nullable().optional(),
@@ -405,6 +412,12 @@ export const createAveriaData = (body, method) => {
   if (data.vehiculoMatricula)
     data.vehiculoMatriculaHard = data.vehiculoMatricula;
   if (data.userDni) data.userDniHard = data.userDni;
+
+  return data;
+};
+
+export const createImageData = (body, method) => {
+  let data = createDataFromPlantilla("PLANTILLA_IMAGEN", body, method);
 
   return data;
 };
