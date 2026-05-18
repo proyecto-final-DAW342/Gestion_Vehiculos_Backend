@@ -107,7 +107,7 @@ const plantillaBase = {
     porcentajeCombustibleFinal: z.float64().nullable().optional(),
     litrosCombustibleInicio: z.float64().nullable().optional(),
     litrosCombustibleFinal: z.float64().nullable().optional(),
-    visible: z.boolean().nullable(),
+    visible: z.boolean().nullable().optional(),
     fechaSalida: z.string().nullable().optional(),
     fechaLlegada: z.string().nullable().optional(),
     vehiculoMatricula: z.string().nullable().optional(),

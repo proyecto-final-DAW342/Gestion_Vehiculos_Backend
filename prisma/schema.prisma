@@ -90,7 +90,7 @@ model Viaje {
   porcentajeCombustibleFinal  Float?
   litrosCombustibleInicio     Float?
   litrosCombustibleFinal      Float?
-  visible                     Boolean
+  visible                     Boolean      @default(true)
   estado                      ESTADO_VIAJE @default(PENDIENTE)
   fechaSalida                 DateTime?
   fechaLlegada                DateTime?
