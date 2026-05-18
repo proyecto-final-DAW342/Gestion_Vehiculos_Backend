@@ -13,7 +13,7 @@ const proteccionPorMetodo = {
 const proteccionPorRuta = {
   DEFAULT: 1,
   "/api/auth/check-status": 1,
-  "/api/auth/register": 0,
+  "/api/auth/register": 3,
   "/api/users": 1,
 };
 
@@ -54,7 +54,7 @@ export async function verifyUser(request, params = {}) {
     let user;
 
     if (nivel === 2) {
-      // Dependiendo de tu lógica, el DNI puede venir en params
+      // El DNI viene en params
       const dni = params.dni;
       if (!dni)
         throw {
@@ -63,6 +63,11 @@ export async function verifyUser(request, params = {}) {
         };
 
       user = await nivelProteccion[nivel](authHeader, dni);
+      return user;
+    }
+
+    if (nivel === 3) {
+      user = await nivelProteccion[nivel](authHeader);
       return user;
     }
 
@@ -76,7 +81,7 @@ export async function verifyUser(request, params = {}) {
 export async function verifyUserLogged(authHeader) {
   try {
     if (!authHeader) {
-      throw { code: 401 };
+      throw { code: 401, customMessage: "Error: no has enviado token" };
     }
 
     const token = authHeader.split(" ")[1] || authHeader;
@@ -85,7 +90,7 @@ export async function verifyUserLogged(authHeader) {
     const user = await prisma.user.findUnique({ where: { dni } });
 
     if (!user) {
-      throw { code: 401 };
+      throw { code: 401, customMessage: "Error: el usuario no existe" };
     }
 
     return user;

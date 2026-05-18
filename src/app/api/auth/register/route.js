@@ -1,35 +1,22 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { errorHandling } from "@/manejoStatus";
+import { getUserVerifiedBody } from "@/actions";
+import { createUserData } from "@/createEntityData";
 
 export async function POST(request) {
-  const { email, password, fullName, dni, telefono } = await request.json();
-
-  if (!email || !password || !fullName || !dni || !telefono) {
-    return NextResponse.json(
-      { error: "Missing required fields" },
-      { status: 400 },
-    );
-  }
-
   try {
-    const user = await prisma.user.create({
-      data: {
-        dni,
-        email,
-        password: bcrypt.hashSync(password),
-        fullName,
-        telefono,
-      },
-    });
-    const { isActive, roles } = user;
+    const body = await getUserVerifiedBody(request, "USER");
 
-    return NextResponse.json(
-      { dni, email, fullName, telefono, isActive, roles },
-      { status: 201 },
-    );
+    const data = await createUserData(body, "post");
+    const user = await prisma.user.create({
+      data,
+    });
+
+    const { password, ...userNoPass } = user;
+
+    return NextResponse.json(userNoPass, { status: 201 });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json({ error: "User already exists" }, { status: 409 });
+    return errorHandling(error);
   }
 }
