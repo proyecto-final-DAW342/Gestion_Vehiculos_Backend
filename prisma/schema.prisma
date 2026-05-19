@@ -185,6 +185,7 @@ model Averia {
   lugarReparacion         String?
   costeReparacion         Float?
   resuelta                Boolean   @default(false)
+  visible                 Boolean   @default(true)
   userDniHard             String
   vehiculoMatriculaHard   String
 
