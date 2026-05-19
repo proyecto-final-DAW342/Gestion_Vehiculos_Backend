@@ -63,15 +63,17 @@ export async function DELETE(request, { params }) {
   try {
     await verifyUser(request);
 
-    const existing = await prisma.vehiculo.findUnique({ where: { id } });
+    const existing = await prisma.revision.findUnique({ where: { id } });
     if (!existing) {
       throw { code: 404 };
     }
 
-    const deleted = await prisma.vehiculo.delete({
+    const deleted = await prisma.revision.delete({
       where: { id },
       include: {
-        imagenes: true,
+        vehiculo: true,
+        viaje: true,
+        plantilla: true,
       },
     });
 
