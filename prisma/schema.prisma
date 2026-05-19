@@ -137,7 +137,7 @@ model Revision {
   aprobada           Boolean?
   costo              Float?
   kilometrosActuales Int?
-  visible            Boolean
+  visible            Boolean  @default(true)
   esItv              Boolean  @default(false)
   matriculaTexto     String
 

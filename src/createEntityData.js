@@ -65,15 +65,16 @@ const plantillaBase = {
 
   PLANTILLA_REVISION: {
     descripcion: z.string().nullable(),
-    lugar: z.string().nullable(),
-    aprobada: z.boolean().nullable(),
+    lugar: z.string().nullable().optional(),
+    aprobada: z.boolean().nullable().optional(),
     fecha: z.string().nullable(),
-    costo: z.float32().nullable(),
-    visible: z.boolean().nullable(),
-    vehiculoMatricula: z.string().nullable().optional(),
+    costo: z.float32().nullable().optional(),
+    visible: z.boolean().nullable().optional(),
+    vehiculoMatricula: z.string().nullable(),
     viajeId: z.string().nullable().optional(),
     plantillaId: z.string().nullable().optional(),
     kilometrosActuales: z.int().nullable().optional(),
+    esItv: z.boolean().nullable().optional(),
   },
 
   PLANTILLA_VEHICULO: {
