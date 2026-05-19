@@ -178,7 +178,6 @@ const plantillaBase = {
   },
 
   PLANTILLA_ESTACION: {
-    matriculaVehiculo: z.string().nullable(),
     IDCCAA: z.string().nullable(),
     idProvincia: z.string().nullable().optional(),
     idMunicipio: z.string().nullable().optional(),
