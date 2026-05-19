@@ -56,6 +56,7 @@ export async function errorHandling(err, customMessage = null) {
   }
 
   if (err instanceof ZodError) {
+    console.log(err);
     const e = JSON.parse(err.message)[0];
 
     return NextResponse.json(
