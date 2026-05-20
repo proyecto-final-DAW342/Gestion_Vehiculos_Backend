@@ -415,15 +415,17 @@ export const createViajeData = async (body, method, existing = null) => {
 
   if (data.estado) data.estado = data.estado.toUpperCase();
 
-  if (data.kmSalida && data.kmLlegada) {
+  if (
+    (data.kmSalida !== null || data.kmSalida !== undefined) &&
+    data.kmLlegada
+  ) {
     const kilometrosASumar = data.kmLlegada - data.kmSalida;
     const vehiculo = await prisma.vehiculo.findUnique({
       where: {
-        matricula: data.vehiculo.matricula,
+        matricula: data.vehiculoMatricula,
       },
     });
     let dataVehiculo = {};
-
     if (vehiculo) {
       if (existing && existing.kmSalida && existing.kmLlegada) {
         const kilometrosVehiculoRestar = existing.kmLlegada - existing.kmSalida;
