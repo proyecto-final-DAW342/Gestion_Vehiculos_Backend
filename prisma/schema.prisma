@@ -50,12 +50,12 @@ model User {
 }
 
 model Conductor {
-  dni             String   @id
+  dni             String    @id
   nombre          String
   apellidos       String
   telefono        String
   direccion       String
-  fechaNacimiento DateTime
+  fechaNacimiento DateTime?
 
   image Image?
 

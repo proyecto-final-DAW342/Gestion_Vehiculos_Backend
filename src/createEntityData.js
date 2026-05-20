@@ -51,7 +51,7 @@ const plantillaBase = {
     apellidos: z.string().nullable(),
     telefono: z.string().nullable(),
     direccion: z.string().nullable(),
-    fechaNacimiento: z.string().nullable(),
+    fechaNacimiento: z.string().nullable().optional(),
     vehiculo: z.array(z.string()).nullable().optional(),
     image: z
       .object({
