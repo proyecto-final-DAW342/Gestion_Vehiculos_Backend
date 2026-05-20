@@ -43,7 +43,7 @@ export async function PATCH(request, { params }) {
     }
 
     const body = await getUserVerifiedBody(request, await params);
-    const data = createViajeData(body, "patch", existing);
+    const data = await createViajeData(body, "patch", existing);
 
     const updated = await prisma.viaje.update({
       where: { id },

@@ -30,7 +30,7 @@ export async function POST(request) {
   try {
     let body = await getUserVerifiedBody(request);
 
-    let data = createViajeData(body, "post");
+    let data = await createViajeData(body, "post");
 
     const viaje = await prisma.viaje.create({
       data,
