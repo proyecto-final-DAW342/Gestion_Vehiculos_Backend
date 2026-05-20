@@ -380,7 +380,7 @@ export const createVehiculoData = (body, method) => {
   return data;
 };
 
-export const createViajeData = (body, method) => {
+export const createViajeData = async (body, method, existing = null) => {
   let data = createDataFromPlantilla("PLANTILLA_VIAJE", body, method);
 
   if (data.trayectos) {
@@ -414,6 +414,37 @@ export const createViajeData = (body, method) => {
   }
 
   if (data.estado) data.estado = data.estado.toUpperCase();
+
+  if (data.kmSalida && data.kmLlegada) {
+    const kilometrosASumar = data.kmLlegada - data.kmSalida;
+    const vehiculo = await prisma.vehiculo.findUnique({
+      where: {
+        matricula: data.vehiculo.matricula,
+      },
+    });
+    let dataVehiculo = {};
+
+    if (vehiculo) {
+      if (existing && existing.kmSalida && existing.kmLlegada) {
+        const kilometrosVehiculoRestar = existing.kmLlegada - existing.kmSalida;
+
+        dataVehiculo.kilometrosTotales =
+          vehiculo.kilometrosTotales - kilometrosVehiculoRestar;
+      }
+
+      existing
+        ? (dataVehiculo.kilometrosTotales += kilometrosASumar)
+        : (dataVehiculo.kilometrosTotales =
+            vehiculo.kilometrosTotales + kilometrosASumar);
+
+      await prisma.vehiculo.update({
+        where: {
+          matricula: vehiculo.matricula,
+        },
+        data: dataVehiculo,
+      });
+    }
+  }
 
   return data;
 };

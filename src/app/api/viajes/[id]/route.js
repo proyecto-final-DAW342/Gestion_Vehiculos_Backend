@@ -34,13 +34,16 @@ export async function PATCH(request, { params }) {
   const { id } = await params;
 
   try {
-    const existing = await prisma.viaje.findUnique({ where: { id } });
+    const existing = await prisma.viaje.findUnique({
+      where: { id },
+      include: { vehiculo: true },
+    });
     if (!existing) {
       throw { code: 404 };
     }
 
     const body = await getUserVerifiedBody(request, await params);
-    const data = createViajeData(body, "patch");
+    const data = createViajeData(body, "patch", existing);
 
     const updated = await prisma.viaje.update({
       where: { id },
