@@ -3,6 +3,7 @@ import { createUserData } from "@/createEntityData";
 import prisma from "@/lib/prisma";
 import { errorHandling } from "@/manejoStatus";
 import { NextResponse } from "next/server";
+import { getUserVerifiedBody } from "@/actions";
 
 export async function GET(request, { params }) {
   const { dni } = await params;
