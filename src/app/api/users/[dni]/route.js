@@ -51,17 +51,6 @@ export async function PATCH(request, { params }) {
       },
     });
 
-    if (
-      updatedUser &&
-      (await prisma.conductor.findUnique({ where: { dni } }))
-    ) {
-      const { email, ...dataSinEmail } = data;
-      await prisma.conductor.update({
-        where: { dni },
-        dataSinEmail,
-      });
-    }
-
     return NextResponse.json(updatedUser, { status: 200 });
   } catch (error) {
     return errorHandling(error);
