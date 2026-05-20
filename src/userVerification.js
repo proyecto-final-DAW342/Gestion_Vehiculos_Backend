@@ -101,7 +101,7 @@ async function verifyUserLogged(authHeader) {
   }
 }
 
-async function verifyUserAdmin(authHeader) {
+export async function verifyUserAdmin(authHeader) {
   try {
     const user = await verifyUserLogged(authHeader);
 

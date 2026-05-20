@@ -1,4 +1,4 @@
-import { verifyUserAdminOrSameDni } from "@/userVerification";
+import { verifyUserAdmin, verifyUserAdminOrSameDni } from "@/userVerification";
 import { createUserData } from "@/createEntityData";
 import prisma from "@/lib/prisma";
 import { errorHandling } from "@/manejoStatus";
@@ -52,6 +52,28 @@ export async function PATCH(request, { params }) {
     });
 
     return NextResponse.json(updatedUser, { status: 200 });
+  } catch (error) {
+    return errorHandling(error);
+  }
+}
+
+export async function DELETE(request, { params }) {
+  const { dni } = await params;
+
+  try {
+    await verifyUserAdmin(request.headers.get("Authorization"));
+
+    const existing = await prisma.user.findUnique({
+      where: { dni },
+    });
+    if (!existing) {
+      throw {
+        code: 404,
+      };
+    }
+
+    const deleted = await prisma.user.delete({ where: { dni } });
+    return NextResponse.json(deleted, { status: 200 });
   } catch (error) {
     return errorHandling(error);
   }
