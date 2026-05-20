@@ -368,6 +368,7 @@ export const createVehiculoData = (body, method) => {
     data.plantillas = {
       disconnect: data.plantillasEliminar.map((id) => ({ id })),
     };
+    delete data.plantillasEliminar;
   }
 
   if (data.estado) data.estado = data.estado.toUpperCase();
