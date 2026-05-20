@@ -358,19 +358,6 @@ export const createVehiculoData = (body, method) => {
     };
   }
 
-  /*if (data.plantillas) {
-    data.plantillas = {
-      connect: data.plantillas.map((id) => ({ id })),
-    };
-  }
-
-  if (data.plantillasEliminar) {
-    data.plantillas = {
-      disconnect: data.plantillasEliminar.map((id) => ({ id })),
-    };
-    delete data.plantillasEliminar;
-  }*/
-
   if (data.plantillas || data.plantillasEliminar) {
     const plantillasActualizadas = {};
 
@@ -390,7 +377,6 @@ export const createVehiculoData = (body, method) => {
 
   if (data.estado) data.estado = data.estado.toUpperCase();
 
-  console.log(data);
   return data;
 };
 
