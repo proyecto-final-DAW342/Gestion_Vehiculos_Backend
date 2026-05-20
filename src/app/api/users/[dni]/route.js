@@ -40,9 +40,9 @@ export async function PATCH(request, { params }) {
 
     const body = await getUserVerifiedBody(request);
 
-    const data = createUserData(body, "patch");
+    const data = await createUserData(body, "patch");
 
-    const updatedConductor = await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { dni },
       data,
       include: {
@@ -51,7 +51,7 @@ export async function PATCH(request, { params }) {
       },
     });
 
-    return NextResponse.json(updatedConductor, { status: 200 });
+    return NextResponse.json(updatedUser, { status: 200 });
   } catch (error) {
     return errorHandling(error);
   }
