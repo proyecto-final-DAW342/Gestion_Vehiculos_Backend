@@ -55,9 +55,10 @@ export async function PATCH(request, { params }) {
       updatedUser &&
       (await prisma.conductor.findUnique({ where: { dni } }))
     ) {
+      const { email, ...dataSinEmail } = data;
       await prisma.conductor.update({
         where: { dni },
-        data,
+        dataSinEmail,
       });
     }
 
