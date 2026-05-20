@@ -446,6 +446,8 @@ export const createViajeData = async (body, method, existing = null) => {
     }
   }
 
+  console.log(data);
+
   return data;
 };
 
