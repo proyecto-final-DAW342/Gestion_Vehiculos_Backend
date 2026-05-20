@@ -4,6 +4,7 @@ import prisma from "./lib/prisma";
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     nodeCron.schedule(
+      //"*/10 * * * * *",
       "0 0 * * *",
       async () => {
         const msPorAnio = 1000 * 60 * 60 * 24 * 365.25;
@@ -45,7 +46,7 @@ export async function register() {
 
             //Frecuencia para agregar nueva revisión
             if (rangoActual) {
-              if (p.frecuencia == "MESES") {
+              if (p.frecuencia == "MESES" && rangoActual.frecuenciaMeses) {
                 const idRevisiones = p.revisiones.map((rev) => {
                   return rev.id;
                 });
@@ -55,6 +56,7 @@ export async function register() {
                     id: {
                       in: idRevisiones,
                     },
+                    vehiculoMatricula: v.matricula,
                   },
                   orderBy: {
                     fecha: "desc",
@@ -102,7 +104,7 @@ export async function register() {
                 }
               }
 
-              if (p.frecuencia == "KM") {
+              if (p.frecuencia == "KM" && rangoActual.frecuenciaKilometros) {
                 const idRevisiones = p.revisiones.map((rev) => {
                   return rev.id;
                 });
@@ -112,6 +114,7 @@ export async function register() {
                     id: {
                       in: idRevisiones,
                     },
+                    vehiculoMatricula: v.matricula,
                   },
                   orderBy: {
                     fecha: "desc",
