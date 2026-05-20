@@ -92,6 +92,7 @@ const plantillaBase = {
     estado: z.enum(ESTADO_VEHICULO).nullable().optional(),
     conductorDni: z.string().nullable().optional(),
     plantillas: z.array(z.string()).nullable().optional(),
+    plantillasEliminar: z.array(z.string()).nullable().optional(),
     imagenes: z.array(z.string()).nullable().optional(),
     revisiones: z.array(z.string()).nullable().optional(),
     averias: z.array(z.string()).nullable().optional(),
@@ -360,6 +361,12 @@ export const createVehiculoData = (body, method) => {
   if (data.plantillas) {
     data.plantillas = {
       connect: data.plantillas.map((id) => ({ id })),
+    };
+  }
+
+  if (data.plantillasEliminar) {
+    data.plantillas = {
+      disconnect: data.plantillasEliminar.map((id) => ({ id })),
     };
   }
 
