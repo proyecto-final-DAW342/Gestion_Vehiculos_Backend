@@ -1,4 +1,4 @@
-# FlotaGest - Gestión Inteligente de Flotas de Vehículos 🚚
+# FlotaGest - Gestión Inteligente de Flotas de Vehículos
 
 Bienvenido a la documentación oficial de **FlotaGest**, una plataforma integral y robusta diseñada para centralizar, automatizar y optimizar la administración de flotas de vehículos comerciales, la planificación de trayectos, el control del consumo de combustible y la programación de mantenimientos preventivos.
 
