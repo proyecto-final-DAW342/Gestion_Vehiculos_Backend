@@ -241,7 +241,7 @@ export const createUserData = async (body, method) => {
   if (data.password) data.password = bcrypt.hashSync(data.password);
 
   let dni = data.dni;
-  if (await prisma.conductor.findUnique({ where: { dni: data.dni } })) {
+  if (await prisma.conductor.findUnique({ where: { dni: dni } })) {
     data.conductor = {
       connect: { dni },
     };
