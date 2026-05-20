@@ -62,7 +62,7 @@ model Conductor {
   vehiculo Vehiculo[]
 
   userDni String? @unique
-  user    User?   @relation(fields: [userDni], references: [dni])
+  user    User?   @relation(fields: [userDni], references: [dni], onDelete: Cascade)
   viajes  Viaje[]
 }
 
