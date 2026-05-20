@@ -236,13 +236,12 @@ const createDataFromPlantilla = (tipo, body, method) => {
 };
 
 export const createUserData = async (body, method) => {
-  const { dni } = body;
-
   let data = createDataFromPlantilla("PLANTILLA_USUARIO", body, method);
 
   if (data.password) data.password = bcrypt.hashSync(data.password);
 
-  if (await prisma.conductor.findUnique({ where: { dni: body.dni } })) {
+  let dni = data.dni;
+  if (await prisma.conductor.findUnique({ where: { dni: data.dni } })) {
     data.conductor = {
       connect: { dni },
     };
