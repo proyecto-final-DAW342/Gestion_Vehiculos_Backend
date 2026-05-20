@@ -41,6 +41,7 @@ export async function PATCH(request, { params }) {
     const body = await getUserVerifiedBody(request);
 
     const data = await createUserData(body, "patch");
+    //
 
     const updatedUser = await prisma.user.update({
       where: { dni },
