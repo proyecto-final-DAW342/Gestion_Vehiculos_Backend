@@ -1,11 +1,16 @@
 openapi: 3.0.0
 info:
   title: Gestión de Vehículos API
-  description: API para la administración de flotas de vehículos, conductores, trayectos y mantenimientos.
-  version: 1.1.0
+  description: |
+    API para la administración de flotas de vehículos, conductores, trayectos, viajes, mantenimientos y estaciones de servicio.
+    Esta API soporta la autenticación mediante tokens JWT portados en la cabecera `Authorization: Bearer <token>`.
+  version: 1.2.0
 servers:
   - url: /api
     description: Servidor Local
+
+security:
+  - bearerAuth: []
 
 components:
   securitySchemes:
@@ -15,24 +20,54 @@ components:
       bearerFormat: JWT
 
   schemas:
+    # ------------------ ENUMS ------------------
+    PLANTILLA_TRIGGER:
+      type: string
+      enum: [ANYO, KM]
+      description: Tipo de disparador para la plantilla de revisión (por años de antigüedad o por kilómetros).
+
+    PLANTILLA_FRECUENCIA:
+      type: string
+      enum: [MESES, KM]
+      description: Unidad de frecuencia para la plantilla (cada X meses o cada X kilómetros).
+
+    ESTADO_VIAJE:
+      type: string
+      enum: [PENDIENTE, ACTIVO, FINALIZADO]
+      description: Estado en el que se encuentra un viaje.
+
+    ESTADO_VEHICULO:
+      type: string
+      enum: [DISPONIBLE, EN_TRAYECTO, AVERIADO]
+      description: Estado actual del vehículo.
+
+    # ------------------ SCHEMAS PRINCIPALES ------------------
     User:
       type: object
       properties:
         dni:
           type: string
+          description: DNI único del usuario.
         email:
           type: string
           format: email
+          description: Correo electrónico del usuario.
         fullName:
           type: string
+          description: Nombre completo del usuario.
         telefono:
           type: string
+          description: Número de teléfono.
         isActive:
           type: boolean
+          default: true
+          description: Indica si la cuenta de usuario está activa.
         roles:
           type: array
           items:
             type: string
+          default: ["user"]
+          description: Roles asignados al usuario (ej. admin, user).
       required:
         - dni
         - email
@@ -44,131 +79,211 @@ components:
       properties:
         dni:
           type: string
+          description: DNI único del conductor.
         nombre:
           type: string
+          description: Nombre del conductor.
         apellidos:
           type: string
+          description: Apellidos del conductor.
         telefono:
           type: string
+          description: Teléfono de contacto.
         direccion:
           type: string
+          description: Dirección física del conductor.
         fechaNacimiento:
           type: string
           format: date-time
+          nullable: true
+          description: Fecha de nacimiento.
+        userDni:
+          type: string
+          nullable: true
+          description: DNI del usuario asociado (si existe).
+        image:
+          $ref: '#/components/schemas/Image'
+          nullable: true
       required:
         - dni
         - nombre
         - apellidos
         - telefono
         - direccion
-        - fechaNacimiento
 
     Vehiculo:
       type: object
       properties:
         matricula:
           type: string
+          description: Matrícula única del vehículo (clave primaria).
         marca:
           type: string
+          description: Marca del fabricante.
         modelo:
           type: string
+          description: Modelo específico.
         fechaCompra:
           type: string
           format: date-time
-        anyosAntiguedad:
-          type: integer
+          description: Fecha de adquisición.
+        fechaMatriculacion:
+          type: string
+          format: date-time
+          description: Fecha de matriculación oficial.
         tipo:
           type: string
+          description: Tipo de vehículo (ej. Turismo, Furgoneta, SUV).
         kilometrosTotales:
           type: number
+          format: double
+          description: Odómetro acumulado en kilómetros.
         alimentacion:
           type: string
+          description: Tipo de combustible o energía (Gasolina, Diésel, Eléctrico, Híbrido).
         precio:
           type: number
-        nuevo:
-          type: boolean
-        gastoPorKm:
+          format: double
+          default: 0
+          description: Precio o valor estimado.
+        gastoCombustiblePorKiloetro:
           type: number
-        imagenes:
-          type: array
-          description: "Format depends on the method (POST uses object with id, PATCH uses URL string)"
-          items:
-            anyOf:
-              - type: object
-                properties:
-                  id:
-                    type: integer
-              - type: string
-                format: uri
+          format: double
+          description: Consumo estimado de combustible/energía por kilómetro.
+        capacidadTanqueCombustible:
+          type: number
+          format: double
+          description: Capacidad total del depósito en litros.
+        estado:
+          $ref: '#/components/schemas/ESTADO_VEHICULO'
         conductorDni:
           type: string
           nullable: true
-        averiaId:
-          type: integer
-          nullable: true
+          description: DNI del conductor asignado actualmente.
+        plantillas:
+          type: array
+          items:
+            $ref: '#/components/schemas/Plantilla'
+        imagenes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        revisiones:
+          type: array
+          items:
+            $ref: '#/components/schemas/Revision'
+        averias:
+          type: array
+          items:
+            $ref: '#/components/schemas/Averia'
+        viajes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Viaje'
       required:
         - matricula
         - marca
         - modelo
         - fechaCompra
-        - anyosAntiguedad
+        - fechaMatriculacion
         - tipo
         - kilometrosTotales
         - alimentacion
-        - nuevo
-        - gastoPorKm
+        - gastoCombustiblePorKiloetro
+        - capacidadTanqueCombustible
 
     Averia:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
+          description: ID único autogenerado (UUID).
         descripcion:
           type: string
+          description: Explicación o detalles de la avería.
         fechaAveria:
           type: string
           format: date-time
+          description: Fecha en que ocurrió o se detectó la avería.
         fechaComienzoReparacion:
           type: string
           format: date-time
+          nullable: true
+          description: Fecha de inicio de los trabajos de taller.
         fechaFinReparacion:
           type: string
           format: date-time
+          nullable: true
+          description: Fecha de finalización e inspección del vehículo.
         lugarReparacion:
           type: string
+          nullable: true
+          description: Taller o ubicación donde se repara el vehículo.
         costeReparacion:
           type: number
+          format: double
+          nullable: true
+          description: Coste monetario de la reparación.
+        resuelta:
+          type: boolean
+          default: false
+          description: Indica si la avería ya está reparada e inactiva.
+        visible:
+          type: boolean
+          default: true
+          description: Control de visibilidad lógica.
+        userDniHard:
+          type: string
+          description: DNI del usuario que reportó la avería.
+        vehiculoMatriculaHard:
+          type: string
+          description: Matrícula del vehículo averiado.
+        vehiculoMatricula:
+          type: string
+          nullable: true
+          description: Matrícula del vehículo relacionado administrativamente.
+        userDni:
+          type: string
+          nullable: true
+          description: DNI del usuario relacionado administrativamente.
       required:
-        - id
         - descripcion
         - fechaAveria
-        - fechaComienzoReparacion
-        - fechaFinReparacion
-        - lugarReparacion
-        - costeReparacion
+        - userDniHard
+        - vehiculoMatriculaHard
 
     Trayecto:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
+          description: UUID único del trayecto.
         horaSalida:
           type: string
           format: date-time
+          description: Hora y fecha de partida.
         horaLlegada:
           type: string
           format: date-time
+          description: Hora y fecha de llegada.
         origen:
           type: string
+          description: Dirección o punto geográfico de inicio.
         destino:
           type: string
+          description: Dirección o punto geográfico de fin.
         distanciaEnKm:
           type: number
+          format: double
+          description: Distancia en kilómetros del recorrido.
         viajeId:
-          type: integer
+          type: string
+          format: uuid
           nullable: true
+          description: ID del viaje contenedor.
       required:
-        - id
         - horaSalida
         - horaLlegada
         - origen
@@ -179,67 +294,210 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
+          description: UUID del viaje.
+        descripcion:
+          type: string
+          description: Descripción o motivo del viaje comercial.
+        kmSalida:
+          type: number
+          format: double
+          nullable: true
+          description: Kilometraje registrado en el odómetro al iniciar.
+        kmLlegada:
+          type: number
+          format: double
+          nullable: true
+          description: Kilometraje registrado en el odómetro al llegar.
+        origen:
+          type: string
+          description: Punto de origen del viaje general.
+        destino:
+          type: string
+          description: Punto de destino del viaje general.
+        porcentajeCombustibleInicio:
+          type: number
+          format: double
+          nullable: true
+          description: Porcentaje inicial del tanque de combustible.
+        porcentajeCombustibleFinal:
+          type: number
+          format: double
+          nullable: true
+          description: Porcentaje final del tanque de combustible.
+        litrosCombustibleInicio:
+          type: number
+          format: double
+          nullable: true
+          description: Litros iniciales de combustible.
+        litrosCombustibleFinal:
+          type: number
+          format: double
+          nullable: true
+          description: Litros finales de combustible.
+        visible:
+          type: boolean
+          default: true
+        estado:
+          $ref: '#/components/schemas/ESTADO_VIAJE'
+        fechaSalida:
+          type: string
+          format: date-time
+          nullable: true
+        fechaLlegada:
+          type: string
+          format: date-time
+          nullable: true
+        vehiculoMatricula:
+          type: string
+          nullable: true
+        conductorDni:
+          type: string
+          nullable: true
         trayectos:
           type: array
           items:
             $ref: '#/components/schemas/Trayecto'
       required:
-        - id
+        - descripcion
+        - origen
+        - destino
 
     Revision:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
+          description: ID único de la revisión.
+        descripcion:
+          type: string
+          description: Detalles de la inspección o revisión periódica.
         fecha:
           type: string
           format: date-time
+          description: Fecha programada o realizada.
         lugar:
           type: string
-        activo:
-          type: boolean
+          nullable: true
+          description: Dirección o taller de la revisión.
         aprobada:
           type: boolean
+          nullable: true
+          description: Indica si el vehículo pasó satisfactoriamente la revisión.
+        costo:
+          type: number
+          format: double
+          nullable: true
+          description: Costo total de la revisión/mantenimiento.
+        kilometrosActuales:
+          type: integer
+          nullable: true
+          description: Odómetro del vehículo al momento de la revisión.
+        visible:
+          type: boolean
+          default: true
+        esItv:
+          type: boolean
+          default: false
+          description: Indica si corresponde a la ITV obligatoria.
+        matriculaTexto:
+          type: string
+          description: Matrícula de texto vinculada.
+        vehiculoMatricula:
+          type: string
+          nullable: true
+        viajeId:
+          type: string
+          format: uuid
+          nullable: true
+        plantillaId:
+          type: string
+          format: uuid
+          nullable: true
       required:
-        - id
+        - descripcion
         - fecha
-        - lugar
-        - activo
-        - aprobada
+        - matriculaTexto
 
-    InfoTrayecto:
+    Plantilla:
       type: object
       properties:
         id:
-          type: integer
-        activo:
-          type: boolean
-        completado:
-          type: boolean
-        gasto:
-          type: number
-        conductorDni:
           type: string
-          nullable: true
-        trayectoId:
+          format: uuid
+          description: ID de la plantilla de revisión periódica.
+        nombre:
+          type: string
+          description: Nombre de la plantilla de revisiones programadas (ej. Filtro de Aceite).
+        esItv:
+          type: boolean
+          default: false
+        margenDias:
+          type: integer
+          default: 0
+          description: Margen de días permitidos para realizar la revisión.
+        trigger:
+          $ref: '#/components/schemas/PLANTILLA_TRIGGER'
+        frecuencia:
+          $ref: '#/components/schemas/PLANTILLA_FRECUENCIA'
+        rangos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rango'
+        vehiculos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehiculo'
+      required:
+        - nombre
+        - trigger
+        - frecuencia
+
+    Rango:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: UUID del rango de la plantilla.
+        desdeAnyo:
           type: integer
           nullable: true
-      required:
-        - id
-        - activo
-        - completado
-        - gasto
+          description: Año mínimo de antigüedad del vehículo para aplicar el rango.
+        desdeKilometro:
+          type: integer
+          nullable: true
+          description: Kilometraje mínimo del vehículo para aplicar el rango.
+        frecuenciaMeses:
+          type: integer
+          nullable: true
+          description: Frecuencia de meses en los que debe realizarse la revisión para este rango.
+        frecuenciaKilometros:
+          type: integer
+          nullable: true
+          description: Frecuencia de kilómetros en los que debe realizarse la revisión para este rango.
+        plantillaId:
+          type: string
+          format: uuid
+          nullable: true
 
     Image:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
         url:
           type: string
+          format: uri
         nombre:
           type: string
+          description: Nombre del archivo/Identificador público de Cloudinary.
+        fromCloudinary:
+          type: boolean
+          description: Indica si el archivo está alojado en Cloudinary.
         vehiculoMatricula:
           type: string
           nullable: true
@@ -251,12 +509,120 @@ components:
         - url
         - nombre
 
+    # ------------------ SCHEMAS DE RESPUESTA ESPECIALES ------------------
+    EstacionFormato:
+      type: object
+      properties:
+        direccion:
+          type: string
+          nullable: true
+        precio:
+          type: number
+          format: double
+          nullable: true
+        latitud:
+          type: string
+          nullable: true
+        "longitud (WGS84)":
+          type: string
+          nullable: true
+
+    ProvinciaEstacionesFormato:
+      type: object
+      properties:
+        municipio:
+          type: string
+          nullable: true
+        estaciones:
+          type: array
+          items:
+            $ref: '#/components/schemas/EstacionFormato'
+          nullable: true
+
+    CcaaEstacionesFormato:
+      type: object
+      properties:
+        provincia:
+          type: string
+          nullable: true
+        municipios:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProvinciaEstacionesFormato'
+          nullable: true
+
+    EstacionesProcesadas:
+      type: object
+      properties:
+        precioMedioCCAA:
+          type: number
+          format: double
+          nullable: true
+        direccionEstacionMasBarataCCAA:
+          type: string
+          nullable: true
+        provinciaEstacionMasBarataCCAA:
+          type: string
+          nullable: true
+        municipioEstacionMasBarataCCAA:
+          type: string
+          nullable: true
+        precioEstacionMasBarataCCAA:
+          type: number
+          format: float
+          nullable: true
+        estacionesCCAA:
+          type: array
+          items:
+            $ref: '#/components/schemas/CcaaEstacionesFormato'
+          nullable: true
+        precioMedioProvincia:
+          type: number
+          format: double
+          nullable: true
+        direccionEstacionMasBarataProvincia:
+          type: string
+          nullable: true
+        municipioEstacionMasBarataProvincia:
+          type: string
+          nullable: true
+        precioEstacionMasBarataProvincia:
+          type: number
+          format: double
+          nullable: true
+        estacionesProvincia:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProvinciaEstacionesFormato'
+          nullable: true
+        precioMedioMunicipio:
+          type: number
+          format: double
+          nullable: true
+        direccionEstacionMasBarataMunicipio:
+          type: string
+          nullable: true
+        precioEstacionMasBarataMunicipio:
+          type: number
+          format: double
+          nullable: true
+        estacionesMunicipio:
+          type: array
+          items:
+            $ref: '#/components/schemas/EstacionFormato'
+          nullable: true
+
 paths:
+  # ========================================================
+  # AUTHENTICATION
+  # ========================================================
   /auth/register:
     post:
       summary: Registrar un nuevo usuario
+      description: Crea una cuenta de usuario y asocia automáticamente con conductor si el DNI coincide.
       tags:
         - Auth
+      security: []
       requestBody:
         required: true
         content:
@@ -264,30 +630,43 @@ paths:
             schema:
               type: object
               properties:
+                dni:
+                  type: string
                 email:
                   type: string
+                  format: email
                 password:
                   type: string
                 fullName:
                   type: string
-                dni:
-                  type: string
                 telefono:
                   type: string
-              required: [email, password, fullName, dni, telefono]
+                isActive:
+                  type: boolean
+                roles:
+                  type: array
+                  items:
+                    type: string
+              required: [dni, email, password, fullName, telefono]
       responses:
         '201':
-          description: Usuario registrado exitosamente
+          description: Usuario registrado exitosamente (devuelve el usuario creado sin contraseña).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
         '400':
-          description: Faltan campos requeridos
+          description: Datos inválidos o faltantes.
         '409':
-          description: El usuario ya existe
+          description: DNI o correo electrónico ya registrados.
 
   /auth/login:
     post:
-      summary: Iniciar sesión
+      summary: Iniciar sesión en el sistema
+      description: Autentica al usuario usando DNI y contraseña, retornando información del perfil y el token JWT.
       tags:
         - Auth
+      security: []
       requestBody:
         required: true
         content:
@@ -302,56 +681,150 @@ paths:
               required: [dni, password]
       responses:
         '201':
-          description: Login exitoso
+          description: Login exitoso, se retorna el token JWT válido para las llamadas subsecuentes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dni:
+                    type: string
+                  email:
+                    type: string
+                  fullName:
+                    type: string
+                  isActive:
+                    type: boolean
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                  token:
+                    type: string
+                    description: Token JWT con validez de 2 horas.
         '400':
-          description: Faltan campos requeridos
+          description: Falta DNI o contraseña.
         '401':
-          description: Credenciales inválidas
+          description: Contraseña incorrecta.
+        '404':
+          description: Usuario no encontrado con ese DNI.
 
   /auth/check-status:
     get:
       summary: Verificar el estado de la sesión
+      description: Retorna información básica del usuario si el token JWT proporcionado es válido.
       tags:
         - Auth
-      security:
-        - bearerAuth: []
       responses:
         '200':
-          description: Token válido
+          description: Token verificado con éxito.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  fullName:
+                    type: string
+                  isActive:
+                    type: boolean
+                  roles:
+                    type: array
+                    items:
+                      type: string
         '401':
-          description: No autorizado
+          description: No autorizado, token inválido o expirado.
 
+  # ========================================================
+  # USERS
+  # ========================================================
   /users:
     get:
       summary: Listar todos los usuarios
+      description: Obtiene la lista completa de usuarios del sistema con relaciones (requiere sesión).
       tags:
         - Users
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 10
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
       responses:
         '200':
-          description: Lista de usuarios
+          description: Listado exitoso de usuarios.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
+        '401':
+          description: No autorizado.
 
   /users/{dni}:
     get:
       summary: Obtener un usuario por DNI
+      description: Obtiene los detalles de un usuario. Requiere ser administrador o el propio usuario titular.
+      tags:
+        - Users
+      parameters:
+        - name: dni
+          in: path
+          required: true
+          schema:
+            type: string
+          description: DNI del usuario a consultar.
+      responses:
+        '200':
+          description: Datos del usuario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Usuario no encontrado.
+        '401':
+          description: No autorizado.
+    patch:
+      summary: Actualizar un usuario
+      description: Actualiza de forma parcial o total los campos del usuario. Requiere ser administrador o el mismo usuario.
+      tags:
+        - Users
+      parameters:
+        - name: dni
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                fullName:
+                  type: string
+                telefono:
+                  type: string
+                isActive:
+                  type: boolean
+                roles:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Usuario modificado exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Usuario no encontrado.
+        '401':
+          description: No autorizado.
+    delete:
+      summary: Eliminar un usuario
+      description: Elimina un usuario por DNI de forma física (sólo Administrador).
       tags:
         - Users
       parameters:
@@ -362,13 +835,19 @@ paths:
             type: string
       responses:
         '200':
-          description: Usuario encontrado
+          description: Usuario eliminado correctamente.
         '404':
-          description: Usuario no encontrado
+          description: Usuario no encontrado.
+        '401':
+          description: No autorizado / No es administrador.
 
+  # ========================================================
+  # VEHICULOS
+  # ========================================================
   /vehiculos:
     get:
       summary: Listar vehículos
+      description: Lista paginada de todos los vehículos de la flota con conductor, revisiones, viajes y averías incluidas.
       tags:
         - Vehiculos
       parameters:
@@ -377,14 +856,16 @@ paths:
           schema:
             type: integer
             default: 10
+          description: Cantidad máxima de registros a retornar.
         - name: offset
           in: query
           schema:
             type: integer
             default: 0
+          description: Desplazamiento de registros iniciales.
       responses:
         '200':
-          description: Lista de vehículos
+          description: Listado exitoso.
           content:
             application/json:
               schema:
@@ -393,42 +874,71 @@ paths:
                   $ref: '#/components/schemas/Vehiculo'
     post:
       summary: Crear un vehículo
+      description: Registra un nuevo vehículo en la flota.
       tags:
         - Vehiculos
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Vehiculo'
-            example:
-              matricula: "1234ABC"
-              marca: "Toyota"
-              modelo: "Corolla"
-              fechaCompra: "2023-01-01T00:00:00Z"
-              anyosAntiguedad: 1
-              tipo: "Turismo"
-              kilometrosTotales: 1000
-              alimentacion: "Gasolina"
-              precio: 25000
-              nuevo: true
-              gastoPorKm: 0.15
-              imagenes:
-                - id: 1
-                - id: 2
+              type: object
+              properties:
+                matricula:
+                  type: string
+                marca:
+                  type: string
+                modelo:
+                  type: string
+                fechaCompra:
+                  type: string
+                  format: date-time
+                fechaMatriculacion:
+                  type: string
+                  format: date-time
+                tipo:
+                  type: string
+                kilometrosTotales:
+                  type: number
+                alimentacion:
+                  type: string
+                precio:
+                  type: number
+                gastoCombustiblePorKiloetro:
+                  type: number
+                capacidadTanqueCombustible:
+                  type: number
+                estado:
+                  $ref: '#/components/schemas/ESTADO_VEHICULO'
+                conductorDni:
+                  type: string
+                plantillas:
+                  type: array
+                  items:
+                    type: string
+                  description: Array de IDs de plantillas de revisiones a asociar.
+                imagenes:
+                  type: array
+                  items:
+                    type: string
+                  description: Array de IDs de imágenes ya subidas a asociar.
+              required: [matricula, marca, modelo, fechaCompra, fechaMatriculacion, tipo, kilometrosTotales, alimentacion, gastoCombustiblePorKiloetro, capacidadTanqueCombustible]
       responses:
         '201':
-          description: Vehículo creado exitosamente
+          description: Vehículo creado exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehiculo'
+        '400':
+          description: Validación errónea de datos.
         '401':
-          description: No autorizado
-        '409':
-          description: Matrícula o marca ya existen
+          description: No autorizado.
 
   /vehiculos/{matricula}:
     get:
       summary: Obtener vehículo por matrícula
+      description: Retorna la información completa de un vehículo concreto.
       tags:
         - Vehiculos
       parameters:
@@ -439,15 +949,18 @@ paths:
             type: string
       responses:
         '200':
-          description: Vehículo encontrado
+          description: Datos del vehículo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehiculo'
         '404':
-          description: Vehículo no encontrado
+          description: Vehículo no encontrado.
     patch:
       summary: Actualizar vehículo
+      description: Actualiza de forma parcial o total las relaciones y propiedades del vehículo (soporta asociar/desasociar plantillas).
       tags:
         - Vehiculos
-      security:
-        - bearerAuth: []
       parameters:
         - name: matricula
           in: path
@@ -459,22 +972,64 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Vehiculo'
-            example:
-              kilometrosTotales: 1500
-              imagenes:
-                - "https://res.cloudinary.com/demo/image/upload/sample.jpg"
+              type: object
+              properties:
+                marca:
+                  type: string
+                modelo:
+                  type: string
+                fechaCompra:
+                  type: string
+                  format: date-time
+                fechaMatriculacion:
+                  type: string
+                  format: date-time
+                tipo:
+                  type: string
+                kilometrosTotales:
+                  type: number
+                alimentacion:
+                  type: string
+                precio:
+                  type: number
+                gastoCombustiblePorKiloetro:
+                  type: number
+                capacidadTanqueCombustible:
+                  type: number
+                estado:
+                  $ref: '#/components/schemas/ESTADO_VEHICULO'
+                conductorDni:
+                  type: string
+                plantillas:
+                  type: array
+                  items:
+                    type: string
+                  description: IDs de plantillas a asociar.
+                plantillasEliminar:
+                  type: array
+                  items:
+                    type: string
+                  description: IDs de plantillas a desasociar.
+                imagenes:
+                  type: array
+                  items:
+                    type: string
       responses:
         '200':
-          description: Vehículo actualizado
+          description: Vehículo actualizado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehiculo'
         '404':
-          description: Vehículo no encontrado
+          description: Vehículo no encontrado.
+        '401':
+          description: No autorizado.
     delete:
       summary: Eliminar vehículo
+      description: Elimina físicamente el vehículo y destruye automáticamente sus imágenes asociadas de Cloudinary.
       tags:
         - Vehiculos
-      security:
-        - bearerAuth: []
       parameters:
         - name: matricula
           in: path
@@ -483,13 +1038,19 @@ paths:
             type: string
       responses:
         '200':
-          description: Vehículo eliminado
+          description: Vehículo eliminado.
         '404':
-          description: Vehículo no encontrado
+          description: Vehículo no encontrado.
+        '401':
+          description: No autorizado.
 
+  # ========================================================
+  # CONDUCTORES
+  # ========================================================
   /conductores:
     get:
       summary: Listar conductores
+      description: Devuelve la lista paginada de perfiles de conductor.
       tags:
         - Conductores
       parameters:
@@ -505,7 +1066,7 @@ paths:
             default: 0
       responses:
         '200':
-          description: Lista de conductores
+          description: Lista de conductores.
           content:
             application/json:
               schema:
@@ -514,27 +1075,60 @@ paths:
                   $ref: '#/components/schemas/Conductor'
     post:
       summary: Crear conductor
+      description: Registra un nuevo conductor y vincula su perfil al usuario de id DNI si existe en BD.
       tags:
         - Conductores
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Conductor'
+              type: object
+              properties:
+                dni:
+                  type: string
+                nombre:
+                  type: string
+                apellidos:
+                  type: string
+                telefono:
+                  type: string
+                direccion:
+                  type: string
+                fechaNacimiento:
+                  type: string
+                  format: date-time
+                vehiculo:
+                  type: array
+                  items:
+                    type: string
+                  description: Array de matrículas de vehículos a conectar.
+                image:
+                  type: object
+                  properties:
+                    nombre:
+                      type: string
+                    url:
+                      type: string
+                    fromCloudinary:
+                      type: boolean
+              required: [dni, nombre, apellidos, telefono, direccion]
       responses:
         '201':
-          description: Conductor creado
+          description: Conductor creado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conductor'
         '401':
-          description: No autorizado
+          description: No autorizado.
         '409':
-          description: DNI ya existe
+          description: DNI duplicado.
 
   /conductores/{dni}:
     get:
-      summary: Obtener conductor
+      summary: Obtener perfil de conductor
+      description: Retorna la ficha completa de un conductor.
       tags:
         - Conductores
       parameters:
@@ -545,15 +1139,18 @@ paths:
             type: string
       responses:
         '200':
-          description: Conductor encontrado
+          description: Conductor encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conductor'
         '404':
-          description: Conductor no encontrado
+          description: Conductor no encontrado.
     patch:
       summary: Actualizar conductor
+      description: Modifica los campos básicos y relaciones de imagen/vehículos del conductor.
       tags:
         - Conductores
-      security:
-        - bearerAuth: []
       parameters:
         - name: dni
           in: path
@@ -565,18 +1162,47 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Conductor'
+              type: object
+              properties:
+                nombre:
+                  type: string
+                apellidos:
+                  type: string
+                telefono:
+                  type: string
+                direccion:
+                  type: string
+                fechaNacimiento:
+                  type: string
+                  format: date-time
+                vehiculo:
+                  type: array
+                  items:
+                    type: string
+                image:
+                  type: object
+                  nullable: true
+                  properties:
+                    nombre:
+                      type: string
+                    url:
+                      type: string
+                    fromCloudinary:
+                      type: boolean
       responses:
         '200':
-          description: Conductor actualizado
+          description: Conductor actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conductor'
         '404':
-          description: Conductor no encontrado
+          description: Conductor no encontrado.
     delete:
       summary: Eliminar conductor
+      description: Elimina permanentemente el perfil y borra su foto asociada en Cloudinary.
       tags:
         - Conductores
-      security:
-        - bearerAuth: []
       parameters:
         - name: dni
           in: path
@@ -585,13 +1211,19 @@ paths:
             type: string
       responses:
         '200':
-          description: Conductor eliminado
+          description: Conductor eliminado.
         '404':
-          description: Conductor no encontrado
+          description: Conductor no encontrado.
+        '401':
+          description: No autorizado.
 
+  # ========================================================
+  # AVERIAS
+  # ========================================================
   /averias:
     get:
       summary: Listar averías
+      description: Obtiene todas las averías o incidencias reportadas.
       tags:
         - Averias
       parameters:
@@ -607,7 +1239,7 @@ paths:
             default: 0
       responses:
         '200':
-          description: Lista de averías
+          description: Listado exitoso.
           content:
             application/json:
               schema:
@@ -615,28 +1247,55 @@ paths:
                 items:
                   $ref: '#/components/schemas/Averia'
     post:
-      summary: Crear avería
+      summary: Reportar una avería
+      description: Crea una incidencia asignándole un vehículo y usuario de forma física.
       tags:
         - Averias
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Averia'
+              type: object
+              properties:
+                descripcion:
+                  type: string
+                fechaAveria:
+                  type: string
+                  format: date-time
+                fechaComienzoReparacion:
+                  type: string
+                  format: date-time
+                fechaFinReparacion:
+                  type: string
+                  format: date-time
+                lugarReparacion:
+                  type: string
+                costeReparacion:
+                  type: number
+                resuelta:
+                  type: boolean
+                visible:
+                  type: boolean
+                vehiculoMatricula:
+                  type: string
+                userDni:
+                  type: string
+              required: [descripcion, fechaAveria, vehiculoMatricula, userDni]
       responses:
         '201':
-          description: Avería creada
+          description: Avería reportada con éxito.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Averia'
         '401':
-          description: No autorizado
-        '409':
-          description: ID ya existe
+          description: No autorizado.
 
   /averias/{id}:
     get:
       summary: Obtener avería
+      description: Consulta el estado detallado de una avería mediante su identificador UUID.
       tags:
         - Averias
       parameters:
@@ -644,56 +1303,95 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Avería encontrada
+          description: Avería encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Averia'
         '404':
-          description: Avería no encontrada
+          description: Avería no encontrada.
     patch:
       summary: Actualizar avería
+      description: Permite indicar resolución de avería, registrar costes y fechas de taller.
       tags:
         - Averias
-      security:
-        - bearerAuth: []
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Averia'
+              type: object
+              properties:
+                descripcion:
+                  type: string
+                fechaAveria:
+                  type: string
+                  format: date-time
+                fechaComienzoReparacion:
+                  type: string
+                  format: date-time
+                fechaFinReparacion:
+                  type: string
+                  format: date-time
+                lugarReparacion:
+                  type: string
+                costeReparacion:
+                  type: number
+                resuelta:
+                  type: boolean
+                visible:
+                  type: boolean
+                vehiculoMatricula:
+                  type: string
+                userDni:
+                  type: string
       responses:
         '200':
-          description: Avería actualizada
+          description: Avería actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Averia'
         '404':
-          description: Avería no encontrada
+          description: Avería no encontrada.
     delete:
       summary: Eliminar avería
+      description: Elimina físicamente el reporte de avería (requiere autenticación).
       tags:
         - Averias
-      security:
-        - bearerAuth: []
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Avería eliminada
+          description: Avería eliminada.
         '404':
-          description: Avería no encontrada
+          description: Avería no encontrada.
+        '401':
+          description: No autorizado.
 
+  # ========================================================
+  # TRAYECTOS
+  # ========================================================
   /trayectos:
     get:
-      summary: Listar trayectos
+      summary: Listar todos los trayectos
+      description: Lista paginada de trayectos individuales registrados en el sistema.
       tags:
         - Trayectos
       parameters:
@@ -709,7 +1407,7 @@ paths:
             default: 0
       responses:
         '200':
-          description: Lista de trayectos
+          description: Listado exitoso.
           content:
             application/json:
               schema:
@@ -717,20 +1415,40 @@ paths:
                 items:
                   $ref: '#/components/schemas/Trayecto'
     post:
-      summary: Crear trayecto
+      summary: Registrar trayecto individual
+      description: Crea un trayecto y lo asocia a un viaje opcionalmente.
       tags:
         - Trayectos
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Trayecto'
+              type: object
+              properties:
+                horaSalida:
+                  type: string
+                  format: date-time
+                horaLlegada:
+                  type: string
+                  format: date-time
+                origen:
+                  type: string
+                destino:
+                  type: string
+                distanciaEnKm:
+                  type: integer
+                viajeId:
+                  type: string
+                  format: uuid
+              required: [horaSalida, horaLlegada, origen, destino, distanciaEnKm]
       responses:
         '201':
-          description: Trayecto creado
+          description: Trayecto creado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trayecto'
 
   /trayectos/{id}:
     get:
@@ -742,52 +1460,85 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Trayecto encontrado
+          description: Trayecto encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trayecto'
         '404':
-          description: Trayecto no encontrado
+          description: Trayecto no encontrado.
     patch:
-      summary: Actualizar trayecto
+      summary: Modificar trayecto
       tags:
         - Trayectos
-      security:
-        - bearerAuth: []
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Trayecto'
+              type: object
+              properties:
+                horaSalida:
+                  type: string
+                  format: date-time
+                horaLlegada:
+                  type: string
+                  format: date-time
+                origen:
+                  type: string
+                destino:
+                  type: string
+                distanciaEnKm:
+                  type: integer
+                viajeId:
+                  type: string
+                  format: uuid
       responses:
         '200':
-          description: Trayecto actualizado
+          description: Trayecto actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trayecto'
+        '404':
+          description: Trayecto no encontrado.
     delete:
       summary: Eliminar trayecto
       tags:
         - Trayectos
-      security:
-        - bearerAuth: []
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Trayecto eliminado
+          description: Trayecto eliminado.
+        '404':
+          description: Trayecto no encontrado.
+        '401':
+          description: No autorizado.
 
+  # ========================================================
+  # VIAJES
+  # ========================================================
   /viajes:
     get:
       summary: Listar viajes
+      description: Obtiene el registro completo de viajes comerciales con su vehículo, conductor y trayectos incluidos.
       tags:
         - Viajes
       parameters:
@@ -803,20 +1554,92 @@ paths:
             default: 0
       responses:
         '200':
-          description: Lista de viajes
+          description: Listado exitoso.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Viaje'
     post:
-      summary: Crear viaje
+      summary: Registrar viaje
+      description: Crea una ruta general de viaje, recalculando automáticamente el kilometraje del odómetro del vehículo al cerrarse o al registrar kmLlegada.
       tags:
         - Viajes
-      security:
-        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                descripcion:
+                  type: string
+                kmSalida:
+                  type: number
+                kmLlegada:
+                  type: number
+                origen:
+                  type: string
+                destino:
+                  type: string
+                porcentajeCombustibleInicio:
+                  type: number
+                porcentajeCombustibleFinal:
+                  type: number
+                litrosCombustibleInicio:
+                  type: number
+                litrosCombustibleFinal:
+                  type: number
+                visible:
+                  type: boolean
+                fechaSalida:
+                  type: string
+                  format: date-time
+                fechaLlegada:
+                  type: string
+                  format: date-time
+                vehiculoMatricula:
+                  type: string
+                conductorDni:
+                  type: string
+                revisionId:
+                  type: string
+                  format: uuid
+                trayectos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      horaSalida:
+                        type: string
+                        format: date-time
+                      horaLlegada:
+                        type: string
+                        format: date-time
+                      origen:
+                        type: string
+                      destino:
+                        type: string
+                      distanciaEnKm:
+                        type: integer
+                    required: [horaSalida, horaLlegada, origen, destino, distanciaEnKm]
+                estado:
+                  $ref: '#/components/schemas/ESTADO_VIAJE'
+              required: [descripcion, origen, destino]
       responses:
         '201':
-          description: Viaje creado
+          description: Viaje creado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Viaje'
+        '401':
+          description: No autorizado.
 
   /viajes/{id}:
     get:
-      summary: Obtener viaje
+      summary: Obtener viaje por ID
       tags:
         - Viajes
       parameters:
@@ -824,29 +1647,103 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Viaje encontrado
+          description: Ficha de viaje.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Viaje'
+        '404':
+          description: Viaje no encontrado.
+    patch:
+      summary: Actualizar viaje
+      description: Modifica campos de viaje y actualiza proporcionalmente los km totales del vehículo en base a la diferencia entre kmSalida y kmLlegada.
+      tags:
+        - Viajes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                descripcion:
+                  type: string
+                kmSalida:
+                  type: number
+                kmLlegada:
+                  type: number
+                origen:
+                  type: string
+                destino:
+                  type: string
+                porcentajeCombustibleInicio:
+                  type: number
+                porcentajeCombustibleFinal:
+                  type: number
+                litrosCombustibleInicio:
+                  type: number
+                litrosCombustibleFinal:
+                  type: number
+                visible:
+                  type: boolean
+                fechaSalida:
+                  type: string
+                  format: date-time
+                fechaLlegada:
+                  type: string
+                  format: date-time
+                vehiculoMatricula:
+                  type: string
+                conductorDni:
+                  type: string
+                estado:
+                  $ref: '#/components/schemas/ESTADO_VIAJE'
+      responses:
+        '200':
+          description: Viaje actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Viaje'
+        '404':
+          description: Viaje no encontrado.
     delete:
       summary: Eliminar viaje
       tags:
         - Viajes
-      security:
-        - bearerAuth: []
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Viaje eliminado
+          description: Viaje eliminado.
+        '404':
+          description: Viaje no encontrado.
+        '401':
+          description: No autorizado.
 
+  # ========================================================
+  # REVISIONES
+  # ========================================================
   /revisiones:
     get:
-      summary: Listar revisiones
+      summary: Listar revisiones de vehículos
+      description: Obtiene revisiones programadas o pasadas. Permite filtrar revisiones ocultas o borradas lógicamente con el parámetro `visible`.
       tags:
         - Revisiones
       parameters:
@@ -860,116 +1757,532 @@ paths:
           schema:
             type: integer
             default: 0
+        - name: visible
+          in: query
+          schema:
+            type: string
+            enum: [all, false, true]
+            default: "true"
+          description: Filtro especial. Si es 'all' muestra todo, si es 'false' muestra sólo las no visibles.
       responses:
         '200':
-          description: Lista de revisiones
+          description: Lista de revisiones.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Revision'
     post:
-      summary: Crear revisión
+      summary: Programar o registrar revisión
+      description: Crea una revisión periódica sobre un vehículo.
       tags:
         - Revisiones
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Revision'
+              type: object
+              properties:
+                descripcion:
+                  type: string
+                lugar:
+                  type: string
+                aprobada:
+                  type: boolean
+                fecha:
+                  type: string
+                  format: date-time
+                costo:
+                  type: number
+                visible:
+                  type: boolean
+                vehiculoMatricula:
+                  type: string
+                viajeId:
+                  type: string
+                  format: uuid
+                plantillaId:
+                  type: string
+                  format: uuid
+                kilometrosActuales:
+                  type: integer
+                esItv:
+                  type: boolean
+              required: [descripcion, fecha, vehiculoMatricula]
       responses:
         '201':
-          description: Revisión creada
+          description: Revisión creada exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Revision'
+        '401':
+          description: No autorizado.
 
-  /info-trayectos:
+  /revisiones/{id}:
     get:
-      summary: Listar info de trayectos
+      summary: Obtener revisión individual
       tags:
-        - Info Trayectos
-      parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 10
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
-      responses:
-        '200':
-          description: Lista de info de trayectos
-    post:
-      summary: Crear info de trayecto
-      tags:
-        - Info Trayectos
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/InfoTrayecto'
-      responses:
-        '201':
-          description: Info de trayecto creada
-
-  /info-trayectos/{id}:
-    get:
-      summary: Obtener info de trayecto
-      tags:
-        - Info Trayectos
+        - Revisiones
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Info encontrada
+          description: Datos de la revisión.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Revision'
+        '404':
+          description: Revisión no encontrada.
     patch:
-      summary: Actualizar info de trayecto
+      summary: Modificar revisión
       tags:
-        - Info Trayectos
-      security:
-        - bearerAuth: []
+        - Revisiones
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InfoTrayecto'
+              type: object
+              properties:
+                descripcion:
+                  type: string
+                lugar:
+                  type: string
+                aprobada:
+                  type: boolean
+                fecha:
+                  type: string
+                  format: date-time
+                costo:
+                  type: number
+                visible:
+                  type: boolean
+                vehiculoMatricula:
+                  type: string
+                viajeId:
+                  type: string
+                  format: uuid
+                plantillaId:
+                  type: string
+                  format: uuid
+                kilometrosActuales:
+                  type: integer
+                esItv:
+                  type: boolean
       responses:
         '200':
-          description: Info actualizada
+          description: Revisión actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Revision'
+        '404':
+          description: Revisión no encontrada.
     delete:
-      summary: Eliminar info de trayecto
+      summary: Eliminar revisión
       tags:
-        - Info Trayectos
-      security:
-        - bearerAuth: []
+        - Revisiones
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Info eliminada
+          description: Revisión eliminada físicamente.
+        '404':
+          description: Revisión no encontrada.
+        '401':
+          description: No autorizado.
 
+  # ========================================================
+  # PLANTILLAS
+  # ========================================================
+  /plantillas:
+    get:
+      summary: Listar plantillas de mantenimiento
+      description: Muestra las plantillas de revisiones automáticas definidas con sus rangos de edad/kilometraje.
+      tags:
+        - Plantillas
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Lista de plantillas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plantilla'
+    post:
+      summary: Registrar plantilla de revisiones
+      description: Crea un plan de inspecciones sistemáticas con sus rangos y reglas.
+      tags:
+        - Plantillas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                esItv:
+                  type: boolean
+                rangos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      desdeAnyo:
+                        type: integer
+                      desdeKilometro:
+                        type: integer
+                      frecuenciaMeses:
+                        type: integer
+                      frecuenciaKilometros:
+                        type: integer
+                vehiculos:
+                  type: array
+                  items:
+                    type: string
+                  description: Array de matrículas de vehículos a los cuales aplicar de inicio.
+                revisiones:
+                  type: array
+                  items:
+                    type: string
+                trigger:
+                  $ref: '#/components/schemas/PLANTILLA_TRIGGER'
+                frecuencia:
+                  $ref: '#/components/schemas/PLANTILLA_FRECUENCIA'
+                margenDias:
+                  type: integer
+              required: [nombre, trigger, frecuencia, vehiculos]
+      responses:
+        '201':
+          description: Plantilla creada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plantilla'
+        '401':
+          description: No autorizado.
+
+  /plantillas/{id}:
+    get:
+      summary: Consultar plantilla de revisiones
+      tags:
+        - Plantillas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ficha de plantilla.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plantilla'
+        '404':
+          description: Plantilla no encontrada.
+    patch:
+      summary: Modificar plantilla de revisiones
+      tags:
+        - Plantillas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                esItv:
+                  type: boolean
+                rangos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      desdeAnyo:
+                        type: integer
+                      desdeKilometro:
+                        type: integer
+                      frecuenciaMeses:
+                        type: integer
+                      frecuenciaKilometros:
+                        type: integer
+                vehiculos:
+                  type: array
+                  items:
+                    type: string
+                revisiones:
+                  type: array
+                  items:
+                    type: string
+                trigger:
+                  $ref: '#/components/schemas/PLANTILLA_TRIGGER'
+                frecuencia:
+                  $ref: '#/components/schemas/PLANTILLA_FRECUENCIA'
+                margenDias:
+                  type: integer
+      responses:
+        '200':
+          description: Plantilla modificada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plantilla'
+        '404':
+          description: Plantilla no encontrada.
+    delete:
+      summary: Eliminar plantilla
+      tags:
+        - Plantillas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Plantilla eliminada físicamente.
+        '404':
+          description: Plantilla no encontrada.
+        '401':
+          description: No autorizado.
+
+  # ========================================================
+  # RANGOS
+  # ========================================================
+  /rangos:
+    get:
+      summary: Listar rangos de frecuencias
+      tags:
+        - Rangos
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Lista de rangos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rango'
+    post:
+      summary: Crear un rango de frecuencias
+      tags:
+        - Rangos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                desdeAnyo:
+                  type: integer
+                desdeKilometro:
+                  type: integer
+                frecuenciaMeses:
+                  type: integer
+                frecuenciaKilometros:
+                  type: integer
+                plantillaId:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Rango creado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rango'
+
+  /rangos/{id}:
+    get:
+      summary: Obtener rango por ID
+      tags:
+        - Rangos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Rango encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rango'
+        '404':
+          description: Rango no encontrado.
+    patch:
+      summary: Modificar rango de frecuencias
+      tags:
+        - Rangos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                desdeAnyo:
+                  type: integer
+                desdeKilometro:
+                  type: integer
+                frecuenciaMeses:
+                  type: integer
+                frecuenciaKilometros:
+                  type: integer
+                plantillaId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Rango actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rango'
+        '404':
+          description: Rango no encontrado.
+    delete:
+      summary: Eliminar rango de frecuencia
+      tags:
+        - Rangos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Rango eliminado.
+        '404':
+          description: Rango no encontrado.
+        '401':
+          description: No autorizado.
+
+  # ========================================================
+  # ESTACIONES (SERVICIOS EXTERNOS)
+  # ========================================================
+  /estaciones:
+    post:
+      summary: Consultar precios y estadísticas de estaciones de servicio (Gasolineras)
+      description: |
+        Realiza una consulta a la API pública de estaciones de servicio de España para procesar el combustible seleccionado (`idProducto`).
+        Permite filtrar a nivel autonómico (`IDCCAA`), provincial (`idProvincia`) o municipal (`idMunicipio`), retornando el precio medio e información detallada de la gasolinera más barata.
+      tags:
+        - Estaciones
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                IDCCAA:
+                  type: string
+                  description: ID de la Comunidad Autónoma.
+                idProvincia:
+                  type: string
+                  description: ID opcional de la Provincia.
+                idMunicipio:
+                  type: string
+                  description: ID opcional del Municipio.
+                idProducto:
+                  type: string
+                  description: ID de tipo de combustible (ej. '1' para Gasolina 95 E5).
+              required: [IDCCAA, idProducto]
+      responses:
+        '201':
+          description: Precios calculados y estadísticas procesadas con éxito.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstacionesProcesadas'
+        '400':
+          description: Error al consultar API de gasolineras o parámetros faltantes.
+
+  # ========================================================
+  # FILES & CLOUDINARY
+  # ========================================================
   /files:
     get:
-      summary: Listar recursos de Cloudinary (Imágenes guardadas en BD)
+      summary: Listar referencias de imágenes de la Base de Datos
+      description: Retorna la lista de imágenes guardadas físicamente en la BD local con sus relaciones de vehículo/conductor.
       tags:
         - Files
+      security: []
       parameters:
         - name: limit
           in: query
@@ -983,13 +2296,18 @@ paths:
             default: 0
       responses:
         '200':
-          description: Lista de imágenes
+          description: Lista de referencias de imagen.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Image'
     post:
-      summary: Guardar referencia de imagen en BD
+      summary: Guardar referencia de imagen local en BD
+      description: Guarda la URL y nombre de una imagen externa (fromCloudinary = false).
       tags:
         - Files
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -999,18 +2317,73 @@ paths:
               properties:
                 url:
                   type: string
+                  format: uri
                 nombre:
+                  type: string
+                vehiculoMatricula:
+                  type: string
+                conductorDni:
                   type: string
               required: [url, nombre]
       responses:
         '201':
-          description: Referencia guardada
+          description: Referencia creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '401':
+          description: No autorizado.
+
+  /files/{id}:
+    get:
+      summary: Obtener detalle de imagen guardada
+      tags:
+        - Files
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ficha de imagen.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '404':
+          description: Imagen no encontrada en la BD.
+    delete:
+      summary: Eliminar referencia de imagen
+      description: Elimina la imagen de la Base de Datos y de Cloudinary si correspondía.
+      tags:
+        - Files
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Imagen eliminada.
+        '404':
+          description: Imagen no encontrada.
+        '401':
+          description: No autorizado.
 
   /files/upload:
     get:
-      summary: Listar recursos directamente de la carpeta en Cloudinary
+      summary: Listar recursos directamente de Cloudinary
+      description: Consulta las imágenes cargadas directamente en el Asset Folder de Cloudinary del proyecto.
       tags:
         - Files
+      security: []
       parameters:
         - name: limit
           in: query
@@ -1019,13 +2392,18 @@ paths:
             default: 10
       responses:
         '200':
-          description: Lista de recursos de Cloudinary
+          description: Listado exitoso directo de Cloudinary.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
     post:
       summary: Subir imagen binaria a Cloudinary
+      description: Recibe una imagen física binaria mediante Form Data, la sube al repositorio de Cloudinary, y crea la referencia respectiva en la Base de Datos asociándola a un vehículo o conductor opcionalmente.
       tags:
         - Files
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1033,9 +2411,23 @@ paths:
             schema:
               type: object
               properties:
-                file:
+                image:
                   type: string
                   format: binary
+                  description: Imagen física a subir.
+                vehiculoMatricula:
+                  type: string
+                  description: Matrícula opcional del vehículo a asociar.
+                conductorDNI:
+                  type: string
+                  description: DNI opcional del conductor a asociar.
+              required: [image]
       responses:
         '201':
-          description: Imagen subida y referencia guardada
+          description: Imagen subida y registrada en la Base de Datos con éxito.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '401':
+          description: No autorizado.
