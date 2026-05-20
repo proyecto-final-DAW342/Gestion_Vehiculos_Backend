@@ -373,6 +373,7 @@ export const createVehiculoData = (body, method) => {
 
   if (data.estado) data.estado = data.estado.toUpperCase();
 
+  console.log(data);
   return data;
 };
 
