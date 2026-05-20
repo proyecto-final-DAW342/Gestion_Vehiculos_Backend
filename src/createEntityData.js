@@ -358,7 +358,7 @@ export const createVehiculoData = (body, method) => {
     };
   }
 
-  if (data.plantillas) {
+  /*if (data.plantillas) {
     data.plantillas = {
       connect: data.plantillas.map((id) => ({ id })),
     };
@@ -369,6 +369,23 @@ export const createVehiculoData = (body, method) => {
       disconnect: data.plantillasEliminar.map((id) => ({ id })),
     };
     delete data.plantillasEliminar;
+  }*/
+
+  if (data.plantillas || data.plantillasEliminar) {
+    const plantillasActualizadas = {};
+
+    if (data.plantillas) {
+      plantillasActualizadas.connect = data.plantillas.map((id) => ({ id }));
+    }
+
+    if (data.plantillasEliminar) {
+      plantillasActualizadas.disconnect = data.plantillasEliminar.map((id) => ({
+        id,
+      }));
+      delete data.plantillasEliminar;
+    }
+
+    data.plantillas = plantillasActualizadas;
   }
 
   if (data.estado) data.estado = data.estado.toUpperCase();
