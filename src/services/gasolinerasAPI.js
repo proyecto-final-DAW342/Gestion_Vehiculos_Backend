@@ -3,6 +3,62 @@ import { parsearPreciosConComas } from "./procesamientoGasolinerasJSON";
 const URL_BASE =
   "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/";
 
+export async function obtenerCCAA() {
+  const ccaa = await fetch(`${URL_BASE}Listados/ComunidadesAutonomas`, {
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    });
+
+  return ccaa;
+}
+
+export async function obtenerProvincias() {
+  const provincias = await fetch(`${URL_BASE}Listados/Provincias`, {
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    });
+
+  return provincias;
+}
+
+export async function obtenerMunicipios() {
+  const municipios = await fetch(`${URL_BASE}Listados/Municipios`, {
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    });
+
+  return municipios;
+}
+
+export async function obtenerCarburantes() {
+  const carburantes = await fetch(`${URL_BASE}Listados/ProductosPetroliferos`, {
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    });
+
+  return carburantes;
+}
+
 export async function obtenerProvinciasDeCCAA(idCCAA) {
   const provincias = await fetch(
     `${URL_BASE}Listados/ProvinciasPorComunidad/${idCCAA}`,
