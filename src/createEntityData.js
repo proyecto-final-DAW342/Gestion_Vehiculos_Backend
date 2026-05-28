@@ -372,9 +372,9 @@ export const createVehiculoData = (body, method) => {
       plantillasActualizadas.disconnect = data.plantillasEliminar.map((id) => ({
         id,
       }));
-      delete data.plantillasEliminar;
     }
 
+    delete data.plantillasEliminar;
     data.plantillas = plantillasActualizadas;
   }
 
