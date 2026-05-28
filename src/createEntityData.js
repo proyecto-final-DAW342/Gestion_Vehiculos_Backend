@@ -365,7 +365,10 @@ export const createVehiculoData = (body, method) => {
       plantillasActualizadas.connect = data.plantillas.map((id) => ({ id }));
     }
 
-    if (data.plantillasEliminar) {
+    if (
+      Array.isArray(data.plantillasEliminar) &&
+      data.plantillasEliminar.length
+    ) {
       plantillasActualizadas.disconnect = data.plantillasEliminar.map((id) => ({
         id,
       }));
